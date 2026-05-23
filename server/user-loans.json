@@ -56,6 +56,18 @@
           "nextPaymentAmount": 10000
         }
       ]
+    },
+    {
+      "account": "DEMO00004",
+      "loans": [
+        {
+          "loanAccount": "1234567899999999",
+          "currency": "USD",
+          "currentOutstandingAmount": 1000000,
+          "nextPaymentDate": "20260524",
+          "nextPaymentAmount": 1000
+        }
+      ]
     }
   ]
 }

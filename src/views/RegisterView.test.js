@@ -47,6 +47,7 @@ describe('RegisterView', () => {
     render(RegisterView);
 
     await fireEvent.update(screen.getByLabelText('帳號'), 'short');
+    await fireEvent.update(screen.getByLabelText('使用者名稱'), '新使用者');
     await fireEvent.update(screen.getByLabelText('密碼'), '1234567');
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
@@ -60,13 +61,25 @@ describe('RegisterView', () => {
     });
   });
 
+  it('使用者名稱不足 2 長時顯示錯誤訊息且不送出 API', async () => {
+    render(RegisterView);
+
+    await fireEvent.update(screen.getByLabelText('帳號'), 'NEWUSER1');
+    await fireEvent.update(screen.getByLabelText('使用者名稱'), '王');
+    await fireEvent.update(screen.getByLabelText('密碼'), 'DemoPass123!');
+    await fireEvent.click(screen.getByRole('button', { name: '送出' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('使用者名稱必須大於2長');
+    expect(axiosMock.post).not.toHaveBeenCalled();
+  });
+
   it('新註冊用戶成功時 loans 與 loanChangeLogs 為空陣列並跳轉首頁', async () => {
     axiosMock.post.mockResolvedValue({
       data: {
         success: true,
         user: {
           account: 'NEWUSER1',
-          userName: 'NEWUSER1使用者',
+          userName: '王小明',
           loans: [],
           loanChangeLogs: []
         }
@@ -76,17 +89,19 @@ describe('RegisterView', () => {
     render(RegisterView);
 
     await fireEvent.update(screen.getByLabelText('帳號'), 'NEWUSER1');
+    await fireEvent.update(screen.getByLabelText('使用者名稱'), '王小明');
     await fireEvent.update(screen.getByLabelText('密碼'), 'DemoPass123!');
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith({ name: 'home' }));
     expect(axiosMock.post).toHaveBeenCalledWith('/register', {
       account: 'NEWUSER1',
-      password: 'DemoPass123!'
+      password: 'DemoPass123!',
+      userName: '王小明'
     });
     expect(sessionStore.user).toEqual({
       account: 'NEWUSER1',
-      userName: 'NEWUSER1使用者',
+      userName: '王小明',
       loans: [],
       loanChangeLogs: []
     });
@@ -96,14 +111,17 @@ describe('RegisterView', () => {
     render(RegisterView);
 
     const accountInput = screen.getByLabelText('帳號');
+    const userNameInput = screen.getByLabelText('使用者名稱');
     const passwordInput = screen.getByLabelText('密碼');
 
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
     await fireEvent.update(accountInput, 'NEWUSER1');
+    await fireEvent.update(userNameInput, '王小明');
     await fireEvent.update(passwordInput, 'DemoPass123!');
     await fireEvent.click(screen.getByRole('button', { name: '清除' }));
 
     expect(accountInput).toHaveValue('');
+    expect(userNameInput).toHaveValue('');
     expect(passwordInput).toHaveValue('');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });

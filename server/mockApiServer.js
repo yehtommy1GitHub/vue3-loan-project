@@ -253,9 +253,9 @@ async function saveAllFiles() {
 }
 
 // 建立新註冊使用者，並同步建立空放款與空異動紀錄。
-async function saveRegisteredUser(account, password) {
+async function saveRegisteredUser(account, password, userName) {
   const credential = { account, password };
-  const profile = { account, userName: `${account}使用者` };
+  const profile = { account, userName };
   const loanRecord = { account, loans: [] };
   const logRecord = { account, loanChangeLogs: [] };
 
@@ -331,10 +331,15 @@ app.post('/login', (req, res) => {
 
 // 註冊 API。
 app.post('/register', async (req, res) => {
-  const { account, password } = req.body ?? {};
+  const { account, password, userName } = req.body ?? {};
+  const normalizedUserName = String(userName ?? '').trim();
 
   if (!account || !password) {
     return res.status(400).json({ success: false, message: '帳密未輸入' });
+  }
+
+  if (normalizedUserName.length < 2) {
+    return res.status(400).json({ success: false, message: '使用者名稱必須大於2長' });
   }
 
   if (account.length < 8 || password.length < 8) {
@@ -345,7 +350,7 @@ app.post('/register', async (req, res) => {
     return res.status(409).json({ success: false, message: '帳號已存在' });
   }
 
-  await saveRegisteredUser(account, password);
+  await saveRegisteredUser(account, password, normalizedUserName);
 
   return res.status(201).json({ success: true, user: toPublicUser(account) });
 });

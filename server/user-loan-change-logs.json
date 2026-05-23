@@ -115,6 +115,48 @@
           ]
         }
       ]
+    },
+    {
+      "account": "DEMO00004",
+      "loanChangeLogs": [
+        {
+          "changedAt": "2026/05/24 02:51:54",
+          "changedBy": "我是測試者DEMO3",
+          "changeItem": "新增",
+          "changeData": [
+            {
+              "loanAccount": "1234567899999999",
+              "field": "loanAccount",
+              "fieldName": "放款帳號",
+              "newValue": "1234567899999999"
+            },
+            {
+              "loanAccount": "1234567899999999",
+              "field": "currency",
+              "fieldName": "幣別",
+              "newValue": "USD"
+            },
+            {
+              "loanAccount": "1234567899999999",
+              "field": "currentOutstandingAmount",
+              "fieldName": "當前現欠金額",
+              "newValue": 1000000
+            },
+            {
+              "loanAccount": "1234567899999999",
+              "field": "nextPaymentDate",
+              "fieldName": "下期還款日期",
+              "newValue": "20260524"
+            },
+            {
+              "loanAccount": "1234567899999999",
+              "field": "nextPaymentAmount",
+              "fieldName": "下期還款金額",
+              "newValue": 1000
+            }
+          ]
+        }
+      ]
     }
   ]
 }

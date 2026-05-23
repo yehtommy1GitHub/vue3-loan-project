@@ -79,9 +79,9 @@ export async function login(account, password) {
   return normalizeUser(data, account);
 }
 
-// 呼叫註冊 API。
-export async function register(account, password) {
-  const data = await requestJson(() => apiClient.post('/register', { account, password }));
+// 呼叫註冊 API，使用者名稱由註冊頁輸入並傳給 mock API 寫入 profile JSON。
+export async function register(account, password, userName) {
+  const data = await requestJson(() => apiClient.post('/register', { account, password, userName }));
   assertSuccess(data);
 
   return normalizeUser(data, account);

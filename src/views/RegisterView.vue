@@ -14,6 +14,8 @@ const router = useRouter();
 const account = ref('');
 // 密碼輸入值。
 const password = ref('');
+// 使用者名稱輸入值，註冊成功後會成為會員首頁顯示的名稱。
+const userName = ref('');
 // 畫面錯誤或提示訊息。
 const message = ref('');
 // 送出中狀態，用來避免重複送出。
@@ -46,11 +48,17 @@ function showMessage(text, shouldAutoHide = false) {
   }
 }
 
-// 註冊前端檢核：先檢查空值，再檢查帳號與密碼長度。
+// 註冊前端檢核：先檢查空值，再檢查使用者名稱、帳號與密碼長度。
 function validateCredentials() {
   // 帳號或密碼任一未輸入時，不送 API。
   if (!account.value || !password.value) {
     showMessage('帳密未輸入');
+    return false;
+  }
+
+  // 使用者名稱至少 2 個字元，空白或過短都使用同一則業務提示。
+  if (userName.value.length < 2) {
+    showMessage('使用者名稱必須大於2長');
     return false;
   }
 
@@ -78,8 +86,8 @@ async function submitRegister() {
   isSubmitting.value = true;
 
   try {
-    // 呼叫註冊 API，送出 account/password JSON。
-    const user = await register(account.value, password.value);
+    // 呼叫註冊 API，送出 account/password/userName JSON。
+    const user = await register(account.value, password.value, userName.value);
     // 註冊成功後保存使用者資料。
     sessionStore.setUser(user);
     // 導向使用者資訊首頁。
@@ -99,6 +107,8 @@ function clearForm() {
   account.value = '';
   // 清空密碼。
   password.value = '';
+  // 清空使用者名稱。
+  userName.value = '';
   // 清空訊息。
   message.value = '';
   // 清掉可能存在的自動消失 timer。
@@ -127,6 +137,11 @@ onUnmounted(() => {
         <label class="field">
           <span>帳號</span>
           <input v-model.trim="account" name="account" type="text" autocomplete="username" />
+        </label>
+
+        <label class="field">
+          <span>使用者名稱</span>
+          <input v-model.trim="userName" name="userName" type="text" autocomplete="name" />
         </label>
 
         <label class="field">
