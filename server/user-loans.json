@@ -1,0 +1,61 @@
+{
+  "users": [
+    {
+      "account": "DEMO0001",
+      "loans": [
+        {
+          "loanAccount": "9000000000001",
+          "currency": "TWD",
+          "currentOutstandingAmount": 125000,
+          "nextPaymentDate": "20260615",
+          "nextPaymentAmount": 8500
+        },
+        {
+          "loanAccount": "9000000000002",
+          "currency": "USD",
+          "currentOutstandingAmount": 420011,
+          "nextPaymentDate": "20260705",
+          "nextPaymentAmount": 150
+        },
+        {
+          "loanAccount": "99999999999999",
+          "currency": "USD",
+          "currentOutstandingAmount": 9999999,
+          "nextPaymentDate": "20260519",
+          "nextPaymentAmount": 150
+        }
+      ]
+    },
+    {
+      "account": "DEMO0002",
+      "loans": [
+        {
+          "loanAccount": "9000000000101",
+          "currency": "TWD",
+          "currentOutstandingAmount": 188000,
+          "nextPaymentDate": "20260625",
+          "nextPaymentAmount": 18800
+        },
+        {
+          "loanAccount": "9000000000102",
+          "currency": "JPY",
+          "currentOutstandingAmount": 500000,
+          "nextPaymentDate": "20260701",
+          "nextPaymentAmount": 50000
+        }
+      ]
+    },
+    {
+      "account": "DEMO00003",
+      "loans": [
+        {
+          "loanAccount": "1234567899999",
+          "currency": "USD",
+          "currentOutstandingAmount": 999999999,
+          "nextPaymentDate": "20260525",
+          "nextPaymentAmount": 10000
+        }
+      ]
+    }
+  ]
+}
