@@ -21,6 +21,12 @@ vi.mock('axios', () => ({
 }));
 
 vi.mock('vue-router', () => ({
+  RouterLink: {
+    props: ['to', 'custom'],
+    setup(props, { slots }) {
+      return () => slots.default?.({ navigate: () => push(props.to), href: '' });
+    }
+  },
   useRouter: () => ({ push })
 }));
 
@@ -38,7 +44,7 @@ describe('RegisterView', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('帳密未輸入');
+    expect(await screen.findByRole('alert')).toHaveTextContent('帳密未輸入');
     expect(axiosMock.post).not.toHaveBeenCalled();
   });
 
@@ -51,7 +57,7 @@ describe('RegisterView', () => {
     await fireEvent.update(screen.getByLabelText('密碼'), '1234567');
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('帳號及密碼長度需為 8 碼以上');
+    expect(await screen.findByRole('alert')).toHaveTextContent('帳號及密碼長度需為 8 碼以上');
     expect(axiosMock.post).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(5000);
@@ -69,7 +75,7 @@ describe('RegisterView', () => {
     await fireEvent.update(screen.getByLabelText('密碼'), 'DemoPass123!');
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent('使用者名稱必須大於2長');
+    expect(await screen.findByRole('alert')).toHaveTextContent('使用者名稱必須大於2長');
     expect(axiosMock.post).not.toHaveBeenCalled();
   });
 
@@ -115,6 +121,7 @@ describe('RegisterView', () => {
     const passwordInput = screen.getByLabelText('密碼');
 
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
+    await screen.findByRole('alert');
     await fireEvent.update(accountInput, 'NEWUSER1');
     await fireEvent.update(userNameInput, '王小明');
     await fireEvent.update(passwordInput, 'DemoPass123!');
@@ -129,7 +136,7 @@ describe('RegisterView', () => {
   it('返回登入按鈕會跳回帳密登入頁', async () => {
     render(RegisterView);
 
-    await fireEvent.click(screen.getByRole('button', { name: '返回登入' }));
+    await fireEvent.click(screen.getByRole('button', { name: '返回' }));
 
     expect(push).toHaveBeenCalledWith({ name: 'login' });
   });

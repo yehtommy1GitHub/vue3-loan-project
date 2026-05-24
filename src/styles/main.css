@@ -27,6 +27,17 @@ select {
   font: inherit;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .auth-page,
 .home-page {
   display: grid;
@@ -206,6 +217,124 @@ h1 {
   font-weight: 800;
 }
 
+.loan-total-summary {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.loan-total-header {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.summary-currency-field {
+  display: grid;
+  min-width: 180px;
+  gap: 6px;
+  color: #274b59;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.summary-currency-select {
+  font-size: 1rem;
+}
+
+.summary-currency-actions {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.rate-info-link {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid #0f766e;
+  border-radius: 8px;
+  color: #0f766e;
+  background: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.rate-info-link:hover {
+  background: #ecfdf5;
+}
+
+.total-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.total-summary-grid div {
+  padding: 14px;
+  border: 1px solid #d5dde7;
+  border-radius: 8px;
+  background: #f4f7fa;
+}
+
+.total-summary-grid dt {
+  margin: 0 0 6px;
+  color: #59636f;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.total-summary-grid dd {
+  margin: 0;
+  color: #10212b;
+  font-size: 1.18rem;
+  font-weight: 900;
+}
+
+.rate-control-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.rate-updated-info {
+  margin: 0;
+}
+
+.rate-updated-info div {
+  padding: 14px;
+  border: 1px solid #d5dde7;
+  border-radius: 8px;
+  background: #f4f7fa;
+}
+
+.rate-updated-info dt {
+  margin: 0 0 6px;
+  color: #59636f;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.rate-updated-info dd {
+  margin: 0;
+  color: #10212b;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.exchange-rate-table {
+  min-width: 720px;
+}
+
 .table-wrap {
   width: 100%;
   max-width: 100%;
@@ -248,12 +377,21 @@ h1 {
   min-width: 980px;
 }
 
+.loan-editor-shell .table-wrap {
+  overflow: visible;
+}
+
+.loan-editor-shell .editable-loan-table td {
+  position: relative;
+}
+
 .change-log-table {
   min-width: 980px;
 }
 
 .editable-loan-table input,
-.editable-loan-table select {
+.editable-loan-table select,
+.editable-loan-table .vue-select-header {
   width: 100%;
   min-height: 46px;
   padding: 10px 12px;
@@ -275,6 +413,50 @@ h1 {
   min-width: 132px;
   font-size: 1.08rem;
   font-weight: 800;
+}
+
+.select-field {
+  display: block;
+}
+
+.currency-select {
+  position: relative;
+  min-width: 132px;
+  z-index: 2;
+}
+
+.currency-select .vue-select-header {
+  align-items: center;
+}
+
+.currency-select[aria-expanded="true"],
+.currency-select[data-is-focusing="true"] {
+  z-index: 40;
+}
+
+.currency-select .vue-dropdown {
+  z-index: 9999;
+  min-width: 180px;
+  max-height: 260px !important;
+  overflow-y: auto;
+  border: 1px solid #b9c4d0;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 14px 32px rgb(23 32 42 / 18%);
+}
+
+.currency-select .vue-dropdown-item {
+  display: flex;
+  min-height: 42px;
+  padding: 10px 12px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.currency-select .vue-dropdown-item:hover,
+.currency-select .vue-dropdown-item.highlighted {
+  color: #10212b;
+  background: #eef4f6;
 }
 
 .change-detail-table {
@@ -327,6 +509,20 @@ h1 {
   }
 
   .profile-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .loan-total-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .summary-currency-actions,
+  .rate-control-row {
+    grid-template-columns: 1fr;
+  }
+
+  .total-summary-grid {
     grid-template-columns: 1fr;
   }
 }

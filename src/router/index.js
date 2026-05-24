@@ -10,6 +10,8 @@ import HomeView from '../views/HomeView.vue';
 import RegisterView from '../views/RegisterView.vue';
 // 匯入放款資訊更新頁。
 import UpdateLoansView from '../views/UpdateLoansView.vue';
+// 匯入當前匯率資訊頁。
+import ExchangeRatesView from '../views/ExchangeRatesView.vue';
 
 // 建立 Vue Router 實例。
 const router = createRouter({
@@ -43,6 +45,16 @@ const router = createRouter({
       // 對應放款資訊更新元件。
       component: UpdateLoansView,
       // 此頁必須有登入後的使用者資料。
+      meta: { requiresAuth: true }
+    },
+    {
+      // 當前匯率資訊頁路徑。
+      path: '/exchange-rates',
+      // 路由名稱，放款總額區的「當前匯率資訊」按鈕會跳到此頁。
+      name: 'exchangeRates',
+      // 對應匯率資訊元件。
+      component: ExchangeRatesView,
+      // 此頁屬於登入後輔助查詢頁，仍需登入後才能查看。
       meta: { requiresAuth: true }
     },
     {

@@ -21,6 +21,12 @@ vi.mock('axios', () => ({
 }));
 
 vi.mock('vue-router', () => ({
+  RouterLink: {
+    props: ['to', 'custom'],
+    setup(props, { slots }) {
+      return () => slots.default?.({ navigate: () => push(props.to), href: '' });
+    }
+  },
   useRouter: () => ({ push })
 }));
 

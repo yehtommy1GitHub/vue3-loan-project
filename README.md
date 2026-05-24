@@ -1,6 +1,6 @@
 # Vue3 貸款資料示範系統
 
-最後更新時間：2026/05/24 02:53:00
+最後更新時間：2026/05/24 22:01:44
 
 本專案是一個 Vue3 + Vite 的前端示範系統，搭配 Express mock API 與 JSON 檔案模擬後端資料。主要功能包含登入、註冊、使用者名稱建立、會員首頁、貸款資料顯示、貸款資料異動與異動紀錄查詢。
 
@@ -22,8 +22,10 @@ src/
   App.vue
   main.js
   router/index.js
+  components/
   services/authApi.js
   stores/sessionStore.js
+  utils/currencyTotals.js
   styles/main.css
   views/
 server/
@@ -76,6 +78,15 @@ npm run dev:full
 | GET | `/users/{account}` | 查詢使用者、貸款與異動紀錄 |
 | PUT | `/users/{account}/loans` | 更新使用者貸款資料 |
 | GET | `/users/{account}/loan-change-logs` | 查詢貸款異動紀錄 |
+| GET | `/exchange-rates` | 模擬查詢匯率資料，供放款總額折算使用 |
+
+## 放款總額折算
+
+首頁與放款資訊更新頁會顯示「總現欠金額」與「總還款金額」。系統會透過 `GET /exchange-rates` 取得模擬匯率，依每筆放款幣別折算後加總，並可用旁邊的幣別下拉選單快速切換目標幣別。
+
+前端使用 `reactive` 集中管理總額折算狀態，包含目前目標幣別、匯率資料、讀取中狀態與錯誤訊息；金額計算則集中在 `src/utils/currencyTotals.js`，方便未來改接正式匯率 API。
+
+總幣別下拉式選單旁提供「當前匯率資訊」入口，會另開新視窗或新分頁顯示 `/exchange-rates` 匯率資訊頁，方便使用者保留原放款頁面同步比對。匯率資訊頁包含本位幣幣別下拉選單、匯率更新時間與各幣別匯率比值表格；直接進入時預設本位幣為 TWD，從總額區進入時會帶入目前選擇的總幣別。
 
 ## 註冊頁規則
 
@@ -113,9 +124,10 @@ npm run build
 
 本次驗證結果：
 
-- `npm test`：4 個測試檔、22 個測試案例通過。
+- `npm test`：5 個測試檔、27 個測試案例通過。
 - `npm run build`：Vite production build 成功。
 - 實際網頁操作驗證通過：註冊頁可輸入使用者名稱；1 字元使用者名稱會顯示 `使用者名稱必須大於2長`；2 字元以上使用者名稱可註冊成功並於首頁顯示。
+- 放款資訊與放款資訊更新頁可顯示總現欠金額、下期總還款金額，並可透過幣別下拉選單折算指定幣別。
 
 ## Git / GitHub 版控流程
 
@@ -265,3 +277,67 @@ git check-ignore -v node_modules dist
 - 已設定遠端倉庫：`origin git@github.com:yehtommy1GitHub/vue3-loan-project.git`。
 - 已將 mock 帳密與資料改為安全範例。
 - `node_modules/`、`dist/` 已排除，不會上傳 GitHub。
+
+## 2026/05/24 03:17:13 Vue3 技術導入重構紀錄
+
+本次依據 Vue3 技術盤點建議導入以下項目，目標是在專案規模擴大前先降低後續重構成本。
+
+| 技術 | 導入位置 | 實務用途 |
+|---|---|---|
+| Vuex | `src/store/index.js`、`src/stores/sessionStore.js`、`src/main.js` | 集中管理登入後使用者 session，保留 `sessionStore` facade 讓既有頁面不用一次大量改寫。 |
+| props / emit | `src/components/FormField.vue`、`src/components/LoanRowsEditor.vue` | 將輸入欄位與放款列編輯拆成可重用元件，父層集中處理業務資料。 |
+| RouterLink | `LoginView.vue`、`RegisterView.vue`、`HomeView.vue` | 將單純頁面導覽改為 RouterLink custom slot，仍保留原本 button 視覺。 |
+| onMounted | `HomeView.vue` | 首頁載入後以 `GET /users/{account}` 同步最新使用者、放款與異動紀錄；登出時避免慢回應覆蓋空 session。 |
+| vee-validate | `RegisterView.vue` | 管理註冊表單欄位與驗證，包含帳密必填、帳密 8 碼以上、使用者名稱 2 長以上。 |
+| vue-next-select | `LoanRowsEditor.vue` | 將幣別欄位改為可搜尋、可擴充的下拉選單，適合未來幣別選項增加。 |
+
+驗證流程：
+```bash
+npm test
+npm run build
+```
+
+驗證結果：
+- `npm test`：4 個測試檔、22 個測試案例全數通過。
+- `npm run build`：Vite production build 成功。
+- in-app browser 實測：註冊頁使用者名稱不足 2 長會提示；註冊成功進首頁；首頁可進 `/loans`；新增放款列後幣別下拉元件正常出現。
+
+注意：本次只完成本機重構與驗證，尚未上傳 GitHub；依 `AGENTS.md`，需收到明確指示後才 push。
+
+## 2026/05/24 20:16:14 放款更新驗證強化
+
+本次調整放款資訊更新頁 `/loans` 的前端輸入與存檔驗證：
+- 放款帳號輸入時只保留數字，最多 13 碼。
+- 存檔時放款帳號必須剛好 13 碼數字。
+- 同一批放款資料的放款帳號不可重複。
+- 當前現欠金額必須大於等於下期還款金額。
+
+驗證結果：
+- `npm test`：4 個測試檔、25 個測試案例全數通過。
+
+## 2026/05/24 商業簡報交付
+
+本次新增業主報告用 PDF 與可調整 HTML 來源檔：
+
+- `Vue3放款服務平台_業主價值簡報.pdf`
+- `Vue3放款服務平台_業主價值簡報.html`
+
+簡報主軸依照 3S 原則撰寫：
+
+- Story 故事：從放款資料維護不確定、人工確認成本高的現場痛點切入。
+- Surprise 驚喜：說明目前 Vue3 前端、API service、Express mock API、JSON mock data 與測試已形成可展示且可演進的服務雛形，並加入操作流程簡圖與資料流簡圖，協助業主快速理解系統運作。
+- Service 服務：提出試辦驗證、正式串接、營運治理三階段服務藍圖，協助業主理解後續上線與擴充路徑。
+
+後續若需調整簡報內容，可先修改 HTML 來源檔，再重新輸出 PDF。
+
+## 2026/05/24 20:40:19 幣別下拉選單顯示修正
+
+放款資訊更新頁修正 `vue-next-select` 幣別下拉選單被表格外層裁切、可點擊範圍過小的問題：
+- 放款更新頁表格外層改為允許下拉清單向外展開。
+- 幣別下拉清單提高 z-index，避免被表格或其他欄位遮住。
+- 下拉選單增加可視高度、陰影與每列點擊高度，讓 USD/TWD/JPY/SGD/EUR/GBP/AUD/CAD/CNY/HKD 都能正常檢視與點選。
+
+驗證結果：
+- `npm test`：4 個測試檔、25 個測試案例全數通過。
+- `npm run build`：Vite production build 成功。
+- in-app browser 實測：幣別下拉展開後可看到 10 個幣別選項，清單高度約 262px，可捲動且未被表格裁切。

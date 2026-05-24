@@ -1,12 +1,35 @@
 import { fireEvent, render, screen, within } from '@testing-library/vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { h } from 'vue';
 import HomeView from './HomeView.vue';
 import { sessionStore } from '../stores/sessionStore';
 
 const push = vi.fn();
 
 vi.mock('vue-router', () => ({
+  RouterLink: {
+    props: ['to', 'custom'],
+    setup(props, { attrs, slots }) {
+      if (props.custom !== undefined) {
+        return () => slots.default?.({ navigate: () => push(props.to), href: '' });
+      }
+
+      return () => h('a', { href: '', ...attrs, onClick: () => push(props.to) }, slots.default?.());
+    }
+  },
   useRouter: () => ({ push })
+}));
+
+vi.mock('../services/authApi', () => ({
+  fetchExchangeRates: vi.fn(async () => ({
+    baseCurrency: 'TWD',
+    rates: {
+      TWD: 1,
+      USD: 32
+    },
+    updatedAt: '2026/05/24 20:00:00'
+  })),
+  fetchUser: vi.fn(async () => sessionStore.user)
 }));
 
 describe('HomeView', () => {
@@ -60,6 +83,11 @@ describe('HomeView', () => {
     expect(screen.getByText('使用者名稱')).toBeInTheDocument();
     expect(screen.getAllByText('tommy使用者')).toHaveLength(2);
     expect(screen.getByRole('heading', { name: '放款資訊' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '放款總額' })).toBeInTheDocument();
+    expect(screen.getByText('總現欠金額')).toBeInTheDocument();
+    expect(screen.getByText('下期總還款金額')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '當前匯率資訊' })).toHaveAttribute('target', '_blank');
+    expect(screen.getByRole('link', { name: '當前匯率資訊' })).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.getByRole('heading', { name: '放款資訊異動紀錄' })).toBeInTheDocument();
 
     const tables = screen.getAllByRole('table');

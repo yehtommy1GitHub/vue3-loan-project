@@ -87,6 +87,26 @@ export async function register(account, password, userName) {
   return normalizeUser(data, account);
 }
 
+// 呼叫使用者資料查詢 API，首頁 onMounted 會用它同步最新放款與異動紀錄。
+export async function fetchUser(account) {
+  const data = await requestJson(() => apiClient.get(`/users/${encodeURIComponent(account)}`));
+  assertSuccess(data);
+
+  return normalizeUser(data, account);
+}
+
+// 呼叫 mock 匯率 API，提供首頁與放款更新頁做不同幣別加總折算。
+export async function fetchExchangeRates() {
+  const data = await requestJson(() => apiClient.get('/exchange-rates'));
+  assertSuccess(data);
+
+  return {
+    baseCurrency: data.baseCurrency ?? 'TWD',
+    updatedAt: data.updatedAt ?? '',
+    rates: data.rates ?? {}
+  };
+}
+
 // 呼叫放款資訊更新 API。
 export async function updateLoans(account, loans) {
   const data = await requestJson(() =>

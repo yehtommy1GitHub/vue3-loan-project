@@ -1,38 +1,65 @@
 <script setup>
-// 匯入 computed，讓首頁畫面可依 sessionStore 內容自動更新。
-import { computed } from 'vue';
-// 匯入 useRouter，處理登出與前往放款資訊更新頁。
-import { useRouter } from 'vue-router';
-// 匯入 sessionStore，取得目前登入使用者資料。
+// 匯入 computed、onMounted 與 reactive；computed 整理畫面資料，reactive 管理總額折算狀態。
+import { computed, onMounted, reactive } from 'vue';
+// 匯入 RouterLink 與 useRouter；RouterLink 用於頁面導覽，useRouter 用於登出後導回登入頁。
+import { RouterLink, useRouter } from 'vue-router';
+// 匯入使用者查詢與匯率 API，首頁載入時同步最新放款、異動紀錄與折算匯率。
+import { fetchExchangeRates, fetchUser } from '../services/authApi';
+// 匯入總額摘要元件。
+import LoanTotalsSummary from '../components/LoanTotalsSummary.vue';
+// 匯入 sessionStore，讀取與更新登入後使用者狀態。
 import { sessionStore } from '../stores/sessionStore';
+// 匯入幣別清單、總額計算與金額格式化函式。
+import { calculateLoanTotals, currencyOptions, formatAmount } from '../utils/currencyTotals';
 
-// 建立 router 實例。
 const router = useRouter();
-// 建立金額格式化工具，顯示千分位逗點並保留最多 6 位小數。
-const amountFormatter = new Intl.NumberFormat('en-US', {
-  maximumFractionDigits: 6
+const totalState = reactive({
+  targetCurrency: 'TWD',
+  exchangeRates: {},
+  isLoadingRates: false,
+  rateMessage: ''
 });
-// 若尚未登入，提供空資料避免畫面讀取 undefined。
+
 const user = computed(() => sessionStore.user ?? { account: '', userName: '', loans: [], loanChangeLogs: [] });
-// 放款資訊陣列。
 const loans = computed(() => (Array.isArray(user.value.loans) ? user.value.loans : []));
-// 放款資訊異動紀錄陣列。
 const loanChangeLogs = computed(() =>
   Array.isArray(user.value.loanChangeLogs) ? user.value.loanChangeLogs : []
 );
+const loanTotals = computed(() =>
+  calculateLoanTotals(loans.value, totalState.targetCurrency, totalState.exchangeRates)
+);
 
-// 格式化金額欄位。
-function formatAmount(value) {
-  const numberValue = Number(value);
-
-  if (!Number.isFinite(numberValue)) {
-    return '';
+// 首頁載入後以 account 再向 API 取最新資料；若 API 暫時失敗，保留既有 session 畫面。
+onMounted(async () => {
+  if (!sessionStore.user?.account) {
+    return;
   }
 
-  return amountFormatter.format(numberValue);
-}
+  const account = sessionStore.user.account;
 
-// 將空值轉成畫面可讀的短橫線，避免表格看起來像漏資料。
+  try {
+    const latestUser = await fetchUser(account);
+
+    if (sessionStore.user?.account === account) {
+      sessionStore.setUser(latestUser);
+    }
+  } catch {
+    // 首頁不是強制刷新頁，短暫連線失敗時不清空既有登入資料。
+  }
+
+  totalState.isLoadingRates = true;
+  totalState.rateMessage = '';
+
+  try {
+    const exchangeRateData = await fetchExchangeRates();
+    totalState.exchangeRates = exchangeRateData.rates;
+  } catch {
+    totalState.rateMessage = '匯率讀取失敗，暫時無法折算總金額';
+  } finally {
+    totalState.isLoadingRates = false;
+  }
+});
+
 function formatChangeValue(value) {
   if (value === '' || value === null || value === undefined) {
     return '-';
@@ -41,15 +68,9 @@ function formatChangeValue(value) {
   return value;
 }
 
-// 登出並回到登入頁。
 function logout() {
   sessionStore.clear();
   router.push({ name: 'login' });
-}
-
-// 前往放款資訊更新頁。
-function goUpdateLoans() {
-  router.push({ name: 'updateLoans' });
 }
 </script>
 
@@ -59,10 +80,12 @@ function goUpdateLoans() {
       <div class="home-header">
         <div>
           <p class="eyebrow">User Profile</p>
-          <h1 id="home-title">使用者資訊首頁</h1>
+          <h1 id="home-title">使用者資訊</h1>
         </div>
         <div class="left-actions">
-          <button class="secondary-button" type="button" @click="goUpdateLoans">放款資訊更新</button>
+          <RouterLink :to="{ name: 'updateLoans' }" custom v-slot="{ navigate }">
+            <button class="secondary-button" type="button" @click="navigate">放款資訊更新</button>
+          </RouterLink>
           <button class="secondary-button" type="button" @click="logout">退出</button>
         </div>
       </div>
@@ -78,7 +101,16 @@ function goUpdateLoans() {
         </div>
       </dl>
 
+      <LoanTotalsSummary
+        v-model:target-currency="totalState.targetCurrency"
+        :currency-options="currencyOptions"
+        :totals="loanTotals"
+        :is-loading="totalState.isLoadingRates"
+        :message="totalState.rateMessage"
+      />
+
       <h2 class="section-title">放款資訊</h2>
+
       <div class="table-wrap">
         <table class="loan-table">
           <thead>
@@ -114,7 +146,7 @@ function goUpdateLoans() {
             <tr>
               <th scope="col">序列</th>
               <th scope="col">異動時間</th>
-              <th scope="col">異動者姓名</th>
+              <th scope="col">異動人員</th>
               <th scope="col">異動項目</th>
               <th scope="col">異動資料</th>
             </tr>
