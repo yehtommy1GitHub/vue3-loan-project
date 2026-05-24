@@ -4,6 +4,48 @@
       "account": "DEMO0001",
       "loanChangeLogs": [
         {
+          "changedAt": "2026/05/25 01:33:57",
+          "changedBy": "我是一號",
+          "changeItem": "修改",
+          "changeData": [
+            {
+              "loanAccount": "9000000000002",
+              "field": "currency",
+              "fieldName": "幣別",
+              "oldValue": "USD",
+              "newValue": "TWD"
+            }
+          ]
+        },
+        {
+          "changedAt": "2026/05/25 01:33:57",
+          "changedBy": "我是一號",
+          "changeItem": "修改",
+          "changeData": [
+            {
+              "loanAccount": "9999999999999",
+              "field": "currency",
+              "fieldName": "幣別",
+              "oldValue": "USD",
+              "newValue": "TWD"
+            }
+          ]
+        },
+        {
+          "changedAt": "2026/05/25 01:33:57",
+          "changedBy": "我是一號",
+          "changeItem": "修改",
+          "changeData": [
+            {
+              "loanAccount": "2222222222222",
+              "field": "currency",
+              "fieldName": "幣別",
+              "oldValue": "GBP",
+              "newValue": "JPY"
+            }
+          ]
+        },
+        {
           "changedAt": "2026/05/24 03:21:54",
           "changedBy": "示範使用者一",
           "changeItem": "新增",

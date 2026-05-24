@@ -53,9 +53,7 @@ const router = createRouter({
       // 路由名稱，放款總額區的「當前匯率資訊」按鈕會跳到此頁。
       name: 'exchangeRates',
       // 對應匯率資訊元件。
-      component: ExchangeRatesView,
-      // 此頁屬於登入後輔助查詢頁，仍需登入後才能查看。
-      meta: { requiresAuth: true }
+      component: ExchangeRatesView
     },
     {
       // 註冊頁路徑。
