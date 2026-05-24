@@ -17,9 +17,12 @@
     "axios": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "vee-validate": "^4.15.1",
     "vite": "^6.2.0",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-next-select": "^2.10.5",
+    "vue-router": "^4.5.0",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",

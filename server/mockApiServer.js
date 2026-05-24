@@ -25,6 +25,20 @@ const loansFilePath = join(serverDir, 'user-loans.json');
 // 使用者放款資訊異動紀錄 JSON 檔路徑。
 const loanChangeLogsFilePath = join(serverDir, 'user-loan-change-logs.json');
 
+// 模擬匯率資料，基準為 TWD；例如 USD: 32.15 代表 1 USD 約等於 32.15 TWD。
+const exchangeRates = {
+  TWD: 1,
+  USD: 32.15,
+  JPY: 0.214,
+  SGD: 23.85,
+  EUR: 34.8,
+  GBP: 40.65,
+  AUD: 21.35,
+  CAD: 23.55,
+  CNY: 4.45,
+  HKD: 4.12
+};
+
 // 啟用 CORS，讓 http://127.0.0.1:5173 前端可呼叫 http://127.0.0.1:3001。
 app.use(cors());
 // 啟用 JSON body parser，讓 POST/PUT 上行電文可用 req.body 取得。
@@ -82,6 +96,8 @@ function sortLogsDesc(logs) {
 
 // 檢核必填欄位，避免空資料或格式錯誤寫入 JSON 測試資料。
 function validateLoans(nextLoans) {
+  const loanAccountSet = new Set();
+
   for (const [index, loan] of nextLoans.entries()) {
     const rowNumber = index + 1;
     const loanAccount = String(loan.loanAccount ?? '').trim();
@@ -98,9 +114,15 @@ function validateLoans(nextLoans) {
       return `第 ${rowNumber} 筆資料未完整輸入`;
     }
 
-    if (!/^\d{13,}$/.test(loanAccount)) {
-      return `第 ${rowNumber} 筆放款帳號需為 13 碼以上數字`;
+    if (!/^\d{13}$/.test(loanAccount)) {
+      return `第 ${rowNumber} 筆放款帳號需為 13 碼數字`;
     }
+
+    if (loanAccountSet.has(loanAccount)) {
+      return `第 ${rowNumber} 筆放款帳號不可重複`;
+    }
+
+    loanAccountSet.add(loanAccount);
 
     if (!/^[A-Z]{3}$/.test(currency.toUpperCase())) {
       return `第 ${rowNumber} 筆幣別需為三碼英文`;
@@ -108,6 +130,10 @@ function validateLoans(nextLoans) {
 
     if (!Number.isFinite(Number(currentOutstandingAmount)) || !Number.isFinite(Number(nextPaymentAmount))) {
       return `第 ${rowNumber} 筆金額格式錯誤`;
+    }
+
+    if (Number(currentOutstandingAmount) < Number(nextPaymentAmount)) {
+      return `第 ${rowNumber} 筆當前現欠金額必須大於等於下期還款金額`;
     }
 
     if (!/^\d{8}$/.test(nextPaymentDate)) {
@@ -310,6 +336,16 @@ app.get('/health', (req, res) => {
       loans: loansFilePath,
       loanChangeLogs: loanChangeLogsFilePath
     }
+  });
+});
+
+// 模擬匯率查詢 API，前端用來把不同幣別放款折算為使用者指定幣別。
+app.get('/exchange-rates', (req, res) => {
+  res.json({
+    success: true,
+    baseCurrency: 'TWD',
+    updatedAt: formatChangeTime(),
+    rates: exchangeRates
   });
 });
 

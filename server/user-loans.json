@@ -18,11 +18,18 @@
           "nextPaymentAmount": 150
         },
         {
-          "loanAccount": "99999999999999",
+          "loanAccount": "9999999999999",
           "currency": "USD",
-          "currentOutstandingAmount": 9999999,
+          "currentOutstandingAmount": 999999,
           "nextPaymentDate": "20260519",
-          "nextPaymentAmount": 150
+          "nextPaymentAmount": 15000
+        },
+        {
+          "loanAccount": "2222222222222",
+          "currency": "GBP",
+          "currentOutstandingAmount": 111111111,
+          "nextPaymentDate": "20260525",
+          "nextPaymentAmount": 33333333
         }
       ]
     },
@@ -61,13 +68,41 @@
       "account": "DEMO00004",
       "loans": [
         {
-          "loanAccount": "1234567899999999",
+          "loanAccount": "1234567890004",
           "currency": "USD",
           "currentOutstandingAmount": 1000000,
           "nextPaymentDate": "20260524",
           "nextPaymentAmount": 1000
         }
       ]
+    },
+    {
+      "account": "A1234567",
+      "loans": [
+        {
+          "loanAccount": "9999999999999",
+          "currency": "CNY",
+          "currentOutstandingAmount": 1000000,
+          "nextPaymentDate": "20260526",
+          "nextPaymentAmount": 100
+        }
+      ]
+    },
+    {
+      "account": "DSADSADSADA",
+      "loans": [
+        {
+          "loanAccount": "1111111111111",
+          "currency": "CNY",
+          "currentOutstandingAmount": 9999999999,
+          "nextPaymentDate": "20260512",
+          "nextPaymentAmount": 999999
+        }
+      ]
+    },
+    {
+      "account": "V2016150",
+      "loans": []
     }
   ]
 }
