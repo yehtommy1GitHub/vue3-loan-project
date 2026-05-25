@@ -53,7 +53,7 @@
             {
               "loanAccount": "2222222222222",
               "field": "loanAccount",
-              "fieldName": "放款帳號",
+              "fieldName": "發票號碼",
               "newValue": "2222222222222"
             },
             {
@@ -111,7 +111,7 @@
             {
               "loanAccount": "9999999999999",
               "field": "loanAccount",
-              "fieldName": "放款帳號",
+              "fieldName": "發票號碼",
               "newValue": "9999999999999"
             },
             {
@@ -185,7 +185,7 @@
             {
               "loanAccount": "1234567899999",
               "field": "loanAccount",
-              "fieldName": "放款帳號",
+              "fieldName": "發票號碼",
               "newValue": "1234567899999"
             },
             {
@@ -227,7 +227,7 @@
             {
               "loanAccount": "1234567890004",
               "field": "loanAccount",
-              "fieldName": "放款帳號",
+              "fieldName": "發票號碼",
               "newValue": "1234567890004"
             },
             {
@@ -269,7 +269,7 @@
             {
               "loanAccount": "9999999999999",
               "field": "loanAccount",
-              "fieldName": "放款帳號",
+              "fieldName": "發票號碼",
               "newValue": "9999999999999"
             },
             {
@@ -311,7 +311,7 @@
             {
               "loanAccount": "1111111111111",
               "field": "loanAccount",
-              "fieldName": "放款帳號",
+              "fieldName": "發票號碼",
               "newValue": "1111111111111"
             },
             {
@@ -345,6 +345,48 @@
     {
       "account": "V2016150",
       "loanChangeLogs": []
+    },
+    {
+      "account": "TEST1234",
+      "loanChangeLogs": [
+        {
+          "changedAt": "2026/05/25 19:55:59",
+          "changedBy": "我是測試使用者",
+          "changeItem": "新增",
+          "changeData": [
+            {
+              "loanAccount": "1234567891222",
+              "field": "loanAccount",
+              "fieldName": "發票號碼",
+              "newValue": "1234567891222"
+            },
+            {
+              "loanAccount": "1234567891222",
+              "field": "currency",
+              "fieldName": "幣別",
+              "newValue": "TWD"
+            },
+            {
+              "loanAccount": "1234567891222",
+              "field": "currentOutstandingAmount",
+              "fieldName": "當前現欠金額",
+              "newValue": 1000000000
+            },
+            {
+              "loanAccount": "1234567891222",
+              "field": "nextPaymentDate",
+              "fieldName": "下期還款日期",
+              "newValue": "20260529"
+            },
+            {
+              "loanAccount": "1234567891222",
+              "field": "nextPaymentAmount",
+              "fieldName": "下期還款金額",
+              "newValue": 1000000
+            }
+          ]
+        }
+      ]
     }
   ]
 }

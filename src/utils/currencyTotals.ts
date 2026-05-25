@@ -1,3 +1,5 @@
+import type { AmountValue, ExchangeRateRow, Loan, LoanTotals } from '../types/loan';
+
 // 專案支援的幣別清單，首頁與放款更新頁共用，避免兩邊選項不一致。
 export const currencyOptions = ['TWD', 'USD', 'JPY', 'SGD', 'EUR', 'GBP', 'AUD', 'CAD', 'CNY', 'HKD'];
 
@@ -7,7 +9,12 @@ export const amountFormatter = new Intl.NumberFormat('en-US', {
 });
 
 // 匯率以 TWD 為基準：rates[currency] 代表 1 單位該幣別可折合多少 TWD。
-export function convertAmount(amount, sourceCurrency, targetCurrency, rates) {
+export function convertAmount(
+  amount: AmountValue,
+  sourceCurrency: string,
+  targetCurrency: string,
+  rates: Record<string, number>
+) {
   const numericAmount = Number(amount);
   const sourceRate = Number(rates?.[sourceCurrency]);
   const targetRate = Number(rates?.[targetCurrency]);
@@ -20,7 +27,7 @@ export function convertAmount(amount, sourceCurrency, targetCurrency, rates) {
 }
 
 // 將所有放款依使用者指定幣別折算後加總，提供快速掌握總現欠與總還款金額。
-export function calculateLoanTotals(loans, targetCurrency, rates) {
+export function calculateLoanTotals(loans: Loan[], targetCurrency: string, rates: Record<string, number>): LoanTotals {
   return loans.reduce(
     (totals, loan) => {
       totals.currentOutstandingAmount += convertAmount(
@@ -41,7 +48,11 @@ export function calculateLoanTotals(loans, targetCurrency, rates) {
 }
 
 // 依目前本位幣產出匯率比值表；例如本位幣為 USD 時，顯示 1 USD 可折合多少各幣別。
-export function buildExchangeRateRows(baseCurrency, rates, options = currencyOptions) {
+export function buildExchangeRateRows(
+  baseCurrency: string,
+  rates: Record<string, number>,
+  options = currencyOptions
+): ExchangeRateRow[] {
   const baseRate = Number(rates?.[baseCurrency]);
 
   if (!Number.isFinite(baseRate)) {
@@ -61,7 +72,7 @@ export function buildExchangeRateRows(baseCurrency, rates, options = currencyOpt
   });
 }
 
-export function formatAmount(value) {
+export function formatAmount(value: AmountValue) {
   const numericValue = Number(value);
 
   return Number.isFinite(numericValue) ? amountFormatter.format(numericValue) : '';

@@ -1,8 +1,13 @@
 // 匯入 Vuex 的 createStore，建立專案級集中狀態管理容器。
 import { createStore } from 'vuex';
+import type { UserProfile } from '../types/loan';
+
+interface RootState {
+  user: UserProfile | null;
+}
 
 // 建立全域 store；目前先集中管理登入後的使用者資料，未來功能變多時可再拆 module。
-export const store = createStore({
+export const store = createStore<RootState>({
   // state 使用函式回傳，避免測試或多實例環境共用同一份初始物件。
   state() {
     return {
@@ -16,7 +21,7 @@ export const store = createStore({
   },
   mutations: {
     // 寫入登入後使用者資訊。
-    setUser(state, user) {
+    setUser(state, user: UserProfile) {
       state.user = user;
     },
     // 登出時清空 session。

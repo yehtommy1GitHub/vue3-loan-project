@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 // 匯入 computed、onMounted 與 reactive；本頁用 reactive 集中管理本位幣、匯率資料與載入狀態。
 import { computed, onMounted, reactive, watch } from 'vue';
 // 匯入 RouterLink、useRoute 與 useRouter，支援從總額區帶入目前選擇的本位幣。
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-// 匯入 vue-next-select，讓本位幣選擇體驗與放款總額區一致。
+// 匯入 vue-next-select，讓本位幣選擇體驗與發票放款總額區一致。
 import VueNextSelect from 'vue-next-select';
 // 匯入 mock 匯率 API。
 import { fetchExchangeRates } from '../services/authApi';
@@ -13,7 +13,7 @@ import { buildExchangeRateRows, currencyOptions, formatAmount } from '../utils/c
 const route = useRoute();
 const router = useRouter();
 
-function normalizeBaseCurrency(value) {
+function normalizeBaseCurrency(value: unknown) {
   const candidate = String(value ?? '').toUpperCase();
 
   return currencyOptions.includes(candidate) ? candidate : 'TWD';
@@ -22,7 +22,7 @@ function normalizeBaseCurrency(value) {
 const rateState = reactive({
   baseCurrency: normalizeBaseCurrency(route.query.baseCurrency),
   updatedAt: '',
-  rates: {},
+  rates: {} as Record<string, number>,
   isLoading: false,
   message: ''
 });

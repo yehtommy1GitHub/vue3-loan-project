@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // 匯入 ref，保存登入表單輸入值與畫面訊息。
 import { ref } from 'vue';
 // 匯入 RouterLink 與 useRouter；RouterLink 負責註冊頁導覽，useRouter 負責登入成功後導頁。
@@ -42,7 +42,7 @@ async function submitLogin() {
     sessionStore.setUser(user);
     await router.push({ name: 'home' });
   } catch (error) {
-    message.value = error.message || '登入失敗，請確認帳密';
+    message.value = error instanceof Error ? error.message : '登入失敗，請確認帳密';
   } finally {
     isSubmitting.value = false;
   }
@@ -52,7 +52,7 @@ async function submitLogin() {
 <template>
   <main class="auth-page">
     <section class="auth-panel" aria-labelledby="login-title">
-      <p class="eyebrow">Vue3 Account</p>
+      <p class="eyebrow">Vue3發票登入平台</p>
       <h1 id="login-title">帳密登入</h1>
 
       <form class="form" @submit.prevent="submitLogin">

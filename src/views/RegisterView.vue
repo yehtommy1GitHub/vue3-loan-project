@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // 匯入 onUnmounted 清理提示訊息 timer。
 import { onUnmounted, ref } from 'vue';
 // 匯入 vee-validate，集中管理註冊表單欄位與驗證流程。
@@ -15,7 +15,7 @@ import { sessionStore } from '../stores/sessionStore';
 const router = useRouter();
 const message = ref('');
 const isSubmitting = ref(false);
-let messageTimer = null;
+let messageTimer: number | null = null;
 
 // 建立 vee-validate 表單，初始欄位與畫面 v-model 對應。
 const { handleSubmit, resetForm } = useForm({
@@ -27,7 +27,7 @@ const { handleSubmit, resetForm } = useForm({
 });
 
 // 帳號欄位驗證：必填且至少 8 碼。
-const { value: account } = useField('account', (value) => {
+const { value: account } = useField<string>('account', (value) => {
   const text = String(value ?? '').trim();
 
   if (!text) {
@@ -38,12 +38,12 @@ const { value: account } = useField('account', (value) => {
 });
 
 // 使用者名稱欄位驗證：至少 2 個字，避免新增帳號時出現預設名稱。
-const { value: userName } = useField('userName', (value) => {
+const { value: userName } = useField<string>('userName', (value) => {
   return String(value ?? '').trim().length >= 2 ? true : '使用者名稱必須大於2長';
 });
 
 // 密碼欄位驗證：必填且至少 8 碼。
-const { value: password } = useField('password', (value) => {
+const { value: password } = useField<string>('password', (value) => {
   const text = String(value ?? '');
 
   if (!text) {
@@ -60,7 +60,7 @@ function clearMessageTimer() {
   }
 }
 
-function showMessage(text, shouldAutoHide = false) {
+function showMessage(text: string, shouldAutoHide = false) {
   clearMessageTimer();
   message.value = text;
 
@@ -81,12 +81,12 @@ const submitRegister = handleSubmit(
     try {
       const normalizedAccount = String(account.value).trim();
       const normalizedUserName = String(userName.value).trim();
-      const user = await register(normalizedAccount, password.value, normalizedUserName);
+      const user = await register(normalizedAccount, String(password.value), normalizedUserName);
 
       sessionStore.setUser(user);
       await router.push({ name: 'home' });
     } catch (error) {
-      showMessage(error.message || '註冊失敗，請稍後再試');
+      showMessage(error instanceof Error ? error.message : '註冊失敗，請稍後再試');
     } finally {
       isSubmitting.value = false;
     }

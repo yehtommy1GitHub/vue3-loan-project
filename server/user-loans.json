@@ -103,6 +103,18 @@
     {
       "account": "V2016150",
       "loans": []
+    },
+    {
+      "account": "TEST1234",
+      "loans": [
+        {
+          "loanAccount": "1234567891222",
+          "currency": "TWD",
+          "currentOutstandingAmount": 1000000000,
+          "nextPaymentDate": "20260529",
+          "nextPaymentAmount": 1000000
+        }
+      ]
     }
   ]
 }

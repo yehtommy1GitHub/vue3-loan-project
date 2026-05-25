@@ -8,10 +8,12 @@ import LoginView from '../views/LoginView.vue';
 import HomeView from '../views/HomeView.vue';
 // 匯入帳密註冊頁。
 import RegisterView from '../views/RegisterView.vue';
-// 匯入放款資訊更新頁。
+// 匯入發票放款資訊更新頁。
 import UpdateLoansView from '../views/UpdateLoansView.vue';
 // 匯入當前匯率資訊頁。
 import ExchangeRatesView from '../views/ExchangeRatesView.vue';
+// 匯入後台 API 狀態檢查頁。
+import AdminApiHealthView from '../views/AdminApiHealthView.vue';
 
 // 建立 Vue Router 實例。
 const router = createRouter({
@@ -38,11 +40,11 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      // 放款資訊更新頁路徑。
+      // 發票放款資訊更新頁路徑。
       path: '/loans',
       // 路由名稱，首頁按鈕會跳到此頁。
       name: 'updateLoans',
-      // 對應放款資訊更新元件。
+      // 對應發票放款資訊更新元件。
       component: UpdateLoansView,
       // 此頁必須有登入後的使用者資料。
       meta: { requiresAuth: true }
@@ -50,7 +52,7 @@ const router = createRouter({
     {
       // 當前匯率資訊頁路徑。
       path: '/exchange-rates',
-      // 路由名稱，放款總額區的「當前匯率資訊」按鈕會跳到此頁。
+      // 路由名稱，發票放款總額區的「當前匯率資訊」按鈕會跳到此頁。
       name: 'exchangeRates',
       // 對應匯率資訊元件。
       component: ExchangeRatesView
@@ -62,6 +64,14 @@ const router = createRouter({
       name: 'register',
       // 對應註冊元件。
       component: RegisterView
+    },
+    {
+      // 後台 API 狀態檢查頁路徑，方便直接輸入 URL 檢查後端服務。
+      path: '/admin/api-health',
+      // 路由名稱。
+      name: 'adminApiHealth',
+      // 對應後台 API 狀態檢查元件。
+      component: AdminApiHealthView
     }
   ]
 });
@@ -77,5 +87,5 @@ router.beforeEach((to) => {
   return true;
 });
 
-// 匯出 router，供 main.js 掛載到 Vue app。
+// 匯出 router，供 main.ts 掛載到 Vue app。
 export default router;

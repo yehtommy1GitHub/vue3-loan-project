@@ -46,7 +46,7 @@ app.use(express.json());
 
 // 放款資訊欄位中文標籤，用於異動紀錄與錯誤訊息。
 const loanFieldLabels = {
-  loanAccount: '放款帳號',
+  loanAccount: '發票號碼',
   currency: '幣別',
   currentOutstandingAmount: '當前現欠金額',
   nextPaymentDate: '下期還款日期',
@@ -115,11 +115,11 @@ function validateLoans(nextLoans) {
     }
 
     if (!/^\d{13}$/.test(loanAccount)) {
-      return `第 ${rowNumber} 筆放款帳號需為 13 碼數字`;
+      return `第 ${rowNumber} 筆發票號碼需為 13 碼數字`;
     }
 
     if (loanAccountSet.has(loanAccount)) {
-      return `第 ${rowNumber} 筆放款帳號不可重複`;
+      return `第 ${rowNumber} 筆發票號碼不可重複`;
     }
 
     loanAccountSet.add(loanAccount);

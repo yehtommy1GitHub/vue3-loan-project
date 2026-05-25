@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 // 匯入 ref、computed、onMounted 與 reactive；reactive 用來集中管理總額折算狀態。
 import { computed, onMounted, reactive, ref } from 'vue';
 // 匯入 useRouter，返回首頁時進行程式化導頁。
 import { useRouter } from 'vue-router';
-// 匯入放款資訊更新與匯率 API。
+// 匯入發票放款資訊更新與匯率 API。
 import { fetchExchangeRates, updateLoans } from '../services/authApi';
 // 匯入表格子元件，放款列的輸入控制由子元件透過 props/emit 處理。
 import LoanRowsEditor from '../components/LoanRowsEditor.vue';
@@ -13,18 +13,19 @@ import LoanTotalsSummary from '../components/LoanTotalsSummary.vue';
 import { sessionStore } from '../stores/sessionStore';
 // 匯入幣別清單、總額計算與金額格式化函式。
 import { calculateLoanTotals, currencyOptions, formatAmount } from '../utils/currencyTotals';
+import type { EditableLoan, Loan, LoanField, LoanNumericField } from '../types/loan';
 
 const router = useRouter();
 const message = ref('');
 const isSaving = ref(false);
 const totalState = reactive({
   targetCurrency: 'TWD',
-  exchangeRates: {},
+  exchangeRates: {} as Record<string, number>,
   isLoadingRates: false,
   rateMessage: ''
 });
 
-function toDateInputValue(value) {
+function toDateInputValue(value: string) {
   if (!/^\d{8}$/.test(String(value ?? ''))) {
     return '';
   }
@@ -32,11 +33,11 @@ function toDateInputValue(value) {
   return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
 }
 
-function fromDateInputValue(value) {
+function fromDateInputValue(value: string) {
   return String(value ?? '').replaceAll('-', '');
 }
 
-function parseAmount(value) {
+function parseAmount(value: string): number | '' {
   const rawValue = String(value ?? '').trim();
 
   if (!rawValue) {
@@ -52,15 +53,15 @@ function parseAmount(value) {
   return Number.isFinite(amount) ? amount : '';
 }
 
-// 放款帳號只允許 13 碼數字；輸入時先移除非數字，再截斷超過 13 碼的內容。
-function normalizeLoanAccount(value) {
+// 發票號碼只允許 13 碼數字；輸入時先移除非數字，再截斷超過 13 碼的內容。
+function normalizeLoanAccount(value: string) {
   return String(value ?? '')
     .replace(/\D/g, '')
     .slice(0, 13);
 }
 
-const editableLoans = ref(
-  (sessionStore.user?.loans ?? []).map((loan) => ({
+const editableLoans = ref<EditableLoan[]>(
+  (sessionStore.user?.loans ?? []).map((loan: Loan) => ({
     loanAccount: loan.loanAccount,
     currency: loan.currency,
     currentOutstandingAmount: loan.currentOutstandingAmount,
@@ -69,6 +70,7 @@ const editableLoans = ref(
     isPersisted: true
   }))
 );
+const currentUser = computed(() => sessionStore.user ?? { account: '', userName: '', loans: [], loanChangeLogs: [] });
 const loanTotals = computed(() =>
   calculateLoanTotals(editableLoans.value, totalState.targetCurrency, totalState.exchangeRates)
 );
@@ -98,20 +100,20 @@ function addLoan() {
   });
 }
 
-function removeLoan(index) {
+function removeLoan(index: number) {
   editableLoans.value.splice(index, 1);
 }
 
-function updateLoanField({ index, field, value }) {
+function updateLoanField({ index, field, value }: { index: number; field: LoanField; value: string }) {
   editableLoans.value[index][field] = field === 'loanAccount' ? normalizeLoanAccount(value) : value;
 }
 
-function updateAmount({ index, field, value }) {
+function updateAmount({ index, field, value }: { index: number; field: LoanNumericField; value: string }) {
   editableLoans.value[index][field] = parseAmount(value);
 }
 
 function backHome() {
-  router.push({ name: 'home' });
+  void router.push({ name: 'home' });
 }
 
 function validateLoans() {
@@ -134,11 +136,11 @@ function validateLoans() {
     }
 
     if (!/^\d{13}$/.test(loanAccount)) {
-      return `第 ${rowNumber} 筆放款帳號需為 13 碼數字`;
+      return `第 ${rowNumber} 筆發票號碼需為 13 碼數字`;
     }
 
     if (loanAccountSet.has(loanAccount)) {
-      return `第 ${rowNumber} 筆放款帳號不可重複`;
+      return `第 ${rowNumber} 筆發票號碼不可重複`;
     }
 
     loanAccountSet.add(loanAccount);
@@ -159,7 +161,7 @@ function validateLoans() {
   return '';
 }
 
-function buildPayload() {
+function buildPayload(): Loan[] {
   return editableLoans.value.map((loan) => ({
     loanAccount: String(loan.loanAccount).trim(),
     currency: String(loan.currency).trim(),
@@ -182,11 +184,12 @@ async function saveLoans() {
   isSaving.value = true;
 
   try {
-    const user = await updateLoans(sessionStore.user.account, buildPayload());
+    const account = sessionStore.user?.account ?? '';
+    const user = await updateLoans(account, buildPayload());
     sessionStore.setUser(user);
     message.value = '存檔成功';
   } catch (error) {
-    message.value = error.message || '存檔失敗';
+    message.value = error instanceof Error ? error.message : '存檔失敗';
   } finally {
     isSaving.value = false;
   }
@@ -199,7 +202,7 @@ async function saveLoans() {
       <div class="home-header">
         <div>
           <p class="eyebrow">Loan Editor</p>
-          <h1 id="loan-editor-title">放款資訊更新</h1>
+          <h1 id="loan-editor-title">發票放款資訊更新</h1>
         </div>
         <div class="left-actions">
           <button class="secondary-button" type="button" @click="backHome">返回</button>
@@ -212,11 +215,11 @@ async function saveLoans() {
       <dl class="profile-summary">
         <div>
           <dt>使用者帳號</dt>
-          <dd>{{ sessionStore.user.account }}</dd>
+          <dd>{{ currentUser.account }}</dd>
         </div>
         <div>
           <dt>使用者名稱</dt>
-          <dd>{{ sessionStore.user.userName }}</dd>
+          <dd>{{ currentUser.userName }}</dd>
         </div>
       </dl>
 
@@ -244,3 +247,4 @@ async function saveLoans() {
     </section>
   </main>
 </template>
+

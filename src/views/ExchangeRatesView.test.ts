@@ -6,7 +6,7 @@ import ExchangeRatesView from './ExchangeRatesView.vue';
 
 const replace = vi.fn();
 const push = vi.fn();
-let routeQuery = {};
+let routeQuery: Record<string, string> = {};
 const axiosMock = vi.hoisted(() => {
   const get = vi.fn();
 
@@ -25,7 +25,7 @@ vi.mock('axios', () => ({
 vi.mock('vue-router', () => ({
   RouterLink: {
     props: ['to', 'custom'],
-    setup(props, { slots }) {
+    setup(props: any, { slots }: any) {
       if (props.custom !== undefined) {
         return () => slots.default?.({ navigate: () => push(props.to), href: '' });
       }
@@ -43,7 +43,7 @@ describe('ExchangeRatesView', () => {
     replace.mockClear();
     push.mockClear();
     axiosMock.get.mockReset();
-    axios.create.mockClear();
+    axiosMock.create.mockClear();
     axiosMock.get.mockResolvedValue({
       data: {
         success: true,

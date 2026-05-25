@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // 匯入 computed、onMounted 與 reactive；computed 整理畫面資料，reactive 管理總額折算狀態。
 import { computed, onMounted, reactive } from 'vue';
 // 匯入 RouterLink 與 useRouter；RouterLink 用於頁面導覽，useRouter 用於登出後導回登入頁。
@@ -11,16 +11,18 @@ import LoanTotalsSummary from '../components/LoanTotalsSummary.vue';
 import { sessionStore } from '../stores/sessionStore';
 // 匯入幣別清單、總額計算與金額格式化函式。
 import { calculateLoanTotals, currencyOptions, formatAmount } from '../utils/currencyTotals';
+import type { UserProfile } from '../types/loan';
 
 const router = useRouter();
 const totalState = reactive({
   targetCurrency: 'TWD',
-  exchangeRates: {},
+  exchangeRates: {} as Record<string, number>,
   isLoadingRates: false,
   rateMessage: ''
 });
 
-const user = computed(() => sessionStore.user ?? { account: '', userName: '', loans: [], loanChangeLogs: [] });
+const emptyUser: UserProfile = { account: '', userName: '', loans: [], loanChangeLogs: [] };
+const user = computed(() => sessionStore.user ?? emptyUser);
 const loans = computed(() => (Array.isArray(user.value.loans) ? user.value.loans : []));
 const loanChangeLogs = computed(() =>
   Array.isArray(user.value.loanChangeLogs) ? user.value.loanChangeLogs : []
@@ -60,7 +62,7 @@ onMounted(async () => {
   }
 });
 
-function formatChangeValue(value) {
+function formatChangeValue(value: unknown) {
   if (value === '' || value === null || value === undefined) {
     return '-';
   }
@@ -70,7 +72,7 @@ function formatChangeValue(value) {
 
 function logout() {
   sessionStore.clear();
-  router.push({ name: 'login' });
+  void router.push({ name: 'login' });
 }
 </script>
 
@@ -79,12 +81,11 @@ function logout() {
     <section class="home-shell" aria-labelledby="home-title">
       <div class="home-header">
         <div>
-          <p class="eyebrow">User Profile</p>
           <h1 id="home-title">使用者資訊</h1>
         </div>
         <div class="left-actions">
           <RouterLink :to="{ name: 'updateLoans' }" custom v-slot="{ navigate }">
-            <button class="secondary-button" type="button" @click="navigate">放款資訊更新</button>
+            <button class="secondary-button" type="button" @click="navigate">發票放款資訊更新</button>
           </RouterLink>
           <button class="secondary-button" type="button" @click="logout">退出</button>
         </div>
@@ -109,14 +110,14 @@ function logout() {
         :message="totalState.rateMessage"
       />
 
-      <h2 class="section-title">放款資訊</h2>
+      <h2 class="section-title">發票放款資訊</h2>
 
       <div class="table-wrap">
         <table class="loan-table">
           <thead>
             <tr>
               <th scope="col">序列</th>
-              <th scope="col">放款帳號</th>
+              <th scope="col">發票號碼</th>
               <th scope="col">幣別</th>
               <th scope="col">當前現欠金額</th>
               <th scope="col">下期還款日期</th>
@@ -139,7 +140,7 @@ function logout() {
         </table>
       </div>
 
-      <h2 class="section-title">放款資訊異動紀錄</h2>
+      <h2 class="section-title">發票放款資訊異動紀錄</h2>
       <div class="table-wrap">
         <table class="loan-table change-log-table">
           <thead>
@@ -161,7 +162,7 @@ function logout() {
                 <table class="change-detail-table">
                   <thead>
                     <tr>
-                      <th scope="col">放款帳號</th>
+                      <th scope="col">發票號碼</th>
                       <th scope="col">欄位</th>
                       <th scope="col">修改前</th>
                       <th scope="col">修改後</th>
@@ -187,3 +188,4 @@ function logout() {
     </section>
   </main>
 </template>
+

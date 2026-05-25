@@ -23,7 +23,7 @@ vi.mock('axios', () => ({
 vi.mock('vue-router', () => ({
   RouterLink: {
     props: ['to', 'custom'],
-    setup(props, { slots }) {
+    setup(props: any, { slots }: any) {
       return () => slots.default?.({ navigate: () => push(props.to), href: '' });
     }
   },
@@ -34,7 +34,7 @@ describe('LoginView', () => {
   beforeEach(() => {
     push.mockClear();
     axiosMock.post.mockReset();
-    axios.create.mockClear();
+    axiosMock.create.mockClear();
     sessionStore.clear();
   });
 
@@ -103,9 +103,9 @@ describe('LoginView', () => {
       account: 'DEMO0001',
       password: 'DemoPass123!'
     });
-    expect(sessionStore.user.account).toBe('DEMO0001');
-    expect(sessionStore.user.userName).toBe('tommy使用者');
-    expect(sessionStore.user.loans).toHaveLength(3);
+    expect(sessionStore.user?.account).toBe('DEMO0001');
+    expect(sessionStore.user?.userName).toBe('tommy使用者');
+    expect(sessionStore.user?.loans).toHaveLength(3);
   });
 
   it('DEMO0002 測試帳號登入成功時保存至少 3 筆放款資料', async () => {
@@ -153,8 +153,8 @@ describe('LoginView', () => {
       account: 'DEMO0002',
       password: 'SamplePass456!'
     });
-    expect(sessionStore.user.account).toBe('DEMO0002');
-    expect(sessionStore.user.loans).toHaveLength(3);
+    expect(sessionStore.user?.account).toBe('DEMO0002');
+    expect(sessionStore.user?.loans).toHaveLength(3);
   });
 
   it('登入失敗時顯示錯誤訊息', async () => {

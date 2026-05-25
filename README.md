@@ -1,6 +1,6 @@
 # Vue3 貸款資料示範系統
 
-最後更新時間：2026/05/25 01:28:46
+最後更新時間：2026/05/25 19:47:07
 
 本專案是一個 Vue3 + Vite 的前端示範系統，搭配 Express mock API 與 JSON 檔案模擬後端資料。主要功能包含登入、註冊、使用者名稱建立、會員首頁、貸款資料顯示、貸款資料異動與異動紀錄查詢。
 
@@ -9,6 +9,7 @@
 - Vue 3
 - Vue Router
 - Axios
+- TypeScript
 - Vite
 - Express
 - JSON mock data
@@ -20,12 +21,13 @@
 ```txt
 src/
   App.vue
-  main.js
-  router/index.js
+  main.ts
+  config/backendApiConfig.ts
+  router/index.ts
   components/
-  services/authApi.js
-  stores/sessionStore.js
-  utils/currencyTotals.js
+  services/authApi.ts
+  stores/sessionStore.ts
+  utils/currencyTotals.ts
   styles/main.css
   views/
 server/
@@ -50,10 +52,56 @@ npm install
 npm run dev:full
 ```
 
+只啟動 Vue 前端：
+
+```bash
+npm run dev
+```
+
 服務位置：
 
 - 前端：http://127.0.0.1:5173/
 - Mock API：http://127.0.0.1:3001/
+
+## API 連線模式
+
+前端 API 連線模式由 `.env` 參數控制，範例可參考 `.env.example`：
+
+```env
+VITE_USE_BACKEND_API=false
+VITE_MOCK_API_BASE_URL=http://127.0.0.1:3001
+VITE_BACKEND_API_BASE_URL=https://api.example.com
+VITE_API_TIMEOUT_MS=8000
+```
+
+- `VITE_USE_BACKEND_API=false`：呼叫本機 mock API。
+- `VITE_USE_BACKEND_API=true`：呼叫實際後端 API。
+- `VITE_USE_BACKEND_API=true` 時必須設定 `VITE_BACKEND_API_BASE_URL`；若未設定會直接顯示設定錯誤，不會 fallback 回 mock API。
+- 後端 API 的 URL、METHOD 與動態路徑集中設定於 `src/config/backendApiConfig.ts`，正式串接時可直接調整此設定檔或 `.env` URL。
+- 本機實際後端 API 測試值：`VITE_BACKEND_API_BASE_URL=http://127.0.0.1:8080`。
+- `.env.example` 僅是範例檔，Vite 不會載入；本機切換後端 API 時需建立 `.env` 並重啟 Vite dev server。
+- 2026/05/25 10:29:18 已實測 `http://127.0.0.1:8080/exchange-rates` 與 `http://127.0.0.1:8080/login` 可回應；前端匯率頁顯示 `SGD=23.8`、`EUR=34.9`、`GBP=40.75`，確認來源為後端 API。
+- 2026/05/25 11:35:00 已重啟單一 Vite 前端行程並以瀏覽器實測 `/admin/api-health`，頁面顯示 `API 模式=backend`、`Base URL=http://127.0.0.1:8080`，安全檢查端點狀態皆為正常。
+
+### 網頁名稱規則
+
+瀏覽器分頁標題由 `src/utils/pageTitle.ts` 統一管理：
+
+- `VITE_USE_BACKEND_API=true`：`VUE3發票登入平台`
+- `VITE_USE_BACKEND_API=false`：`VUE3發票登入平台(mock)`
+
+### 實際後端測試注意事項
+
+後端 API 已明確設定於 `http://127.0.0.1:8080`，mock API 則為 `http://127.0.0.1:3001`，兩者 port 不同；mock API 不會取代 8080 後端。若 `VITE_USE_BACKEND_API=true`，建議使用 `npm run dev` 只啟動前端，讓排查範圍單純集中在前端是否讀到最新 `.env` 與後端 8080 回應。
+
+修改 `.env` 後必須停止並重啟 Vite；Vite 不會在執行中重新載入 `.env`。若後台 API 狀態檢查頁顯示異常，但直接打 `http://127.0.0.1:8080` 成功，請先檢查是否存在多個舊的 Vite 前端行程，避免瀏覽器吃到舊 bundle 或舊環境設定。
+
+建議排查順序：
+
+1. 確認後端 API 直接呼叫成功，例如 `http://127.0.0.1:8080/exchange-rates`。
+2. 停止所有舊的 Vite 前端行程。
+3. 只執行 `npm run dev`。
+4. 重新整理 `/admin/api-health`，必要時加 query string，例如 `/admin/api-health?fresh=1` 避免快取干擾。
 
 ## 安全範例帳號
 
@@ -80,11 +128,34 @@ npm run dev:full
 | GET | `/users/{account}/loan-change-logs` | 查詢貸款異動紀錄 |
 | GET | `/exchange-rates` | 模擬查詢匯率資料，供放款總額折算使用 |
 
+## 後台 API 狀態檢查
+
+可直接開啟後台檢查頁：
+
+```txt
+http://127.0.0.1:5173/admin/api-health
+```
+
+頁面欄位包含：
+
+- API 模式
+- Base URL
+- 逾時毫秒
+- 檢查時間
+- 完整 URL
+- URL 中文名稱
+- 當前狀態
+- 錯誤明細
+
+檢查頁會依目前 `.env` 的 API 模式顯示 mock 或實際後端完整 URL。為避免健康檢查造成資料異動，註冊 API 與放款資訊更新 API 只列出 URL，不送出請求，狀態會顯示未檢查原因。
+
+若頁面顯示異常但直接呼叫 8080 成功，請先看頁面上方的 API 模式與 Base URL 是否仍是舊值；再看表格的「錯誤明細」確認是 HTTP 狀態碼、CORS、逾時或前端設定錯誤。
+
 ## 放款總額折算
 
 首頁與放款資訊更新頁會顯示「總現欠金額」與「總還款金額」。系統會透過 `GET /exchange-rates` 取得模擬匯率，依每筆放款幣別折算後加總，並可用旁邊的幣別下拉選單快速切換目標幣別。
 
-前端使用 `reactive` 集中管理總額折算狀態，包含目前目標幣別、匯率資料、讀取中狀態與錯誤訊息；金額計算則集中在 `src/utils/currencyTotals.js`，方便未來改接正式匯率 API。
+前端使用 `reactive` 集中管理總額折算狀態，包含目前目標幣別、匯率資料、讀取中狀態與錯誤訊息；金額計算則集中在 `src/utils/currencyTotals.ts`，方便未來改接正式匯率 API。
 
 總幣別下拉式選單旁提供「當前匯率資訊」入口，會另開新視窗或新分頁顯示 `/exchange-rates` 匯率資訊頁，方便使用者保留原放款頁面同步比對。匯率資訊頁不依賴原視窗的 Vuex session，因此新視窗可直接停留在匯率資訊頁，不會被路由守衛導回其他頁面。匯率資訊頁包含本位幣幣別下拉選單、匯率更新時間與各幣別匯率比值表格；直接進入時預設本位幣為 TWD，從總額區進入時會帶入目前選擇的總幣別。
 
@@ -122,10 +193,17 @@ npm test
 npm run build
 ```
 
-本次驗證結果：
+執行 TypeScript 型別檢查：
 
-- `npm test`：6 個測試檔、28 個測試案例通過。
-- `npm run build`：Vite production build 成功。
+```bash
+npm run type-check
+```
+
+最近一次完整驗證結果：
+
+- `npm run type-check`：`vue-tsc --noEmit` 通過。
+- `npm test`：9 個測試檔、37 個測試案例通過。
+- `npm run build`：`vue-tsc --noEmit` 與 Vite production build 成功。
 - 實際網頁操作驗證通過：註冊頁可輸入使用者名稱；1 字元使用者名稱會顯示 `使用者名稱必須大於2長`；2 字元以上使用者名稱可註冊成功並於首頁顯示。
 - 放款資訊與放款資訊更新頁可顯示總現欠金額、下期總還款金額，並可透過幣別下拉選單折算指定幣別。
 
@@ -287,7 +365,7 @@ git check-ignore -v node_modules dist
 
 | 技術 | 導入位置 | 實務用途 |
 |---|---|---|
-| Vuex | `src/store/index.js`、`src/stores/sessionStore.js`、`src/main.js` | 集中管理登入後使用者 session，保留 `sessionStore` facade 讓既有頁面不用一次大量改寫。 |
+| Vuex | `src/store/index.ts`、`src/stores/sessionStore.ts`、`src/main.ts` | 集中管理登入後使用者 session，保留 `sessionStore` facade 讓既有頁面不用一次大量改寫。 |
 | props / emit | `src/components/FormField.vue`、`src/components/LoanRowsEditor.vue` | 將輸入欄位與放款列編輯拆成可重用元件，父層集中處理業務資料。 |
 | RouterLink | `LoginView.vue`、`RegisterView.vue`、`HomeView.vue` | 將單純頁面導覽改為 RouterLink custom slot，仍保留原本 button 視覺。 |
 | onMounted | `HomeView.vue` | 首頁載入後以 `GET /users/{account}` 同步最新使用者、放款與異動紀錄；登出時避免慢回應覆蓋空 session。 |
@@ -310,9 +388,9 @@ npm run build
 ## 2026/05/24 20:16:14 放款更新驗證強化
 
 本次調整放款資訊更新頁 `/loans` 的前端輸入與存檔驗證：
-- 放款帳號輸入時只保留數字，最多 13 碼。
-- 存檔時放款帳號必須剛好 13 碼數字。
-- 同一批放款資料的放款帳號不可重複。
+- 發票號碼輸入時只保留數字，最多 13 碼。
+- 存檔時發票號碼必須剛好 13 碼數字。
+- 同一批放款資料的發票號碼不可重複。
 - 當前現欠金額必須大於等於下期還款金額。
 
 驗證結果：
@@ -344,3 +422,6 @@ npm run build
 - `npm test`：4 個測試檔、25 個測試案例全數通過。
 - `npm run build`：Vite production build 成功。
 - in-app browser 實測：幣別下拉展開後可看到 10 個幣別選項，清單高度約 262px，可捲動且未被表格裁切。
+
+
+

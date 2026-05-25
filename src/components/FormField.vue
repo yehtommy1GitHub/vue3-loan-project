@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // FormField 用 props 接收欄位設定，讓登入/註冊類型的表單可以逐步共用同一個輸入元件。
 defineProps({
   label: {
@@ -24,7 +24,9 @@ defineProps({
 });
 
 // emit update:modelValue 搭配父層 v-model，讓元件只負責輸入，不決定業務驗證規則。
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{
+  'update:modelValue': [value: string];
+}>();
 </script>
 
 <template>
@@ -35,7 +37,7 @@ const emit = defineEmits(['update:modelValue']);
       :type="type"
       :autocomplete="autocomplete"
       :value="modelValue"
-      @input="emit('update:modelValue', $event.target.value)"
+      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     />
   </label>
 </template>

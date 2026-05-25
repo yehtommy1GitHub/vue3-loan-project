@@ -67,6 +67,10 @@ select {
   width: min(100%, 1280px);
 }
 
+.admin-shell {
+  width: min(100%, 1360px);
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: #326273;
@@ -333,6 +337,46 @@ h1 {
 
 .exchange-rate-table {
   min-width: 720px;
+}
+
+.api-health-table {
+  min-width: 900px;
+}
+
+.api-health-table code {
+  color: #10212b;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.status-pill {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.status-ok {
+  color: #14532d;
+  background: #dcfce7;
+}
+
+.status-error {
+  color: #7f1d1d;
+  background: #fee2e2;
+}
+
+.status-skip {
+  color: #713f12;
+  background: #fef3c7;
+}
+
+.status-pending {
+  color: #274b59;
+  background: #e0f2fe;
 }
 
 .table-wrap {

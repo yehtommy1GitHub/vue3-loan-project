@@ -23,7 +23,7 @@ vi.mock('axios', () => ({
 vi.mock('vue-router', () => ({
   RouterLink: {
     props: ['to', 'custom'],
-    setup(props, { slots }) {
+    setup(props: any, { slots }: any) {
       return () => slots.default?.({ navigate: () => push(props.to), href: '' });
     }
   },
@@ -34,7 +34,7 @@ describe('RegisterView', () => {
   beforeEach(() => {
     push.mockClear();
     axiosMock.post.mockReset();
-    axios.create.mockClear();
+    axiosMock.create.mockClear();
     sessionStore.clear();
     vi.useRealTimers();
   });

@@ -26,7 +26,7 @@ vi.mock('axios', () => ({
 vi.mock('vue-router', () => ({
   RouterLink: {
     props: ['to'],
-    setup(props, { attrs, slots }) {
+    setup(props: any, { attrs, slots }: any) {
       return () => h('a', { href: '', ...attrs, onClick: () => push(props.to) }, slots.default?.());
     }
   },
@@ -38,7 +38,7 @@ describe('UpdateLoansView', () => {
     push.mockClear();
     axiosMock.get.mockReset();
     axiosMock.put.mockReset();
-    axios.create.mockClear();
+    axiosMock.create.mockClear();
     axiosMock.get.mockResolvedValue({
       data: {
         success: true,
@@ -67,7 +67,7 @@ describe('UpdateLoansView', () => {
     });
   });
 
-  async function chooseCurrency(index, currency) {
+  async function chooseCurrency(index: number, currency: string) {
     const currencySelects = screen.getAllByLabelText('幣別');
 
     await fireEvent.click(currencySelects[index]);
@@ -83,17 +83,17 @@ describe('UpdateLoansView', () => {
     expect(axiosMock.put).not.toHaveBeenCalled();
   });
 
-  it('既有放款帳號不可編輯，新增放款帳號可輸入', async () => {
+  it('既有發票號碼不可編輯，新增發票號碼可輸入', async () => {
     render(UpdateLoansView);
 
-    const existingLoanInput = screen.getByLabelText('放款帳號');
+    const existingLoanInput = screen.getByLabelText('發票號碼');
 
     expect(existingLoanInput).toBeDisabled();
-    expect(existingLoanInput).toHaveAttribute('title', '既有放款帳號不可修改，請刪除後重新新增');
+    expect(existingLoanInput).toHaveAttribute('title', '既有發票號碼不可修改，請刪除後重新新增');
 
     await fireEvent.click(screen.getByRole('button', { name: '新增' }));
 
-    const loanInputs = screen.getAllByLabelText('放款帳號');
+    const loanInputs = screen.getAllByLabelText('發票號碼');
 
     expect(loanInputs[0]).toBeDisabled();
     expect(loanInputs[1]).not.toBeDisabled();
@@ -114,8 +114,8 @@ describe('UpdateLoansView', () => {
     expect(screen.getByLabelText('下期還款日期')).toHaveValue('2026-06-15');
     expect(screen.getByLabelText('當前現欠金額')).toHaveValue('125,000');
     expect(screen.getByLabelText('下期還款金額')).toHaveValue('8,500');
-    expect(screen.getByRole('heading', { name: '放款總額' })).toBeInTheDocument();
-    expect(screen.getByText('總現欠金額')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '發票放款總額' })).toBeInTheDocument();
+    expect(screen.getByText('發票發票總現欠金額')).toBeInTheDocument();
     expect(screen.getByText('下期總還款金額')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '當前匯率資訊' })).toHaveAttribute('target', '_blank');
     expect(screen.getByRole('link', { name: '當前匯率資訊' })).toHaveAttribute('rel', 'noopener noreferrer');
@@ -131,24 +131,24 @@ describe('UpdateLoansView', () => {
     expect(axiosMock.put).not.toHaveBeenCalled();
   });
 
-  it('放款帳號輸入時只保留 13 碼數字', async () => {
+  it('發票號碼輸入時只保留 13 碼數字', async () => {
     render(UpdateLoansView);
 
     await fireEvent.click(screen.getByRole('button', { name: '新增' }));
 
-    const loanInputs = screen.getAllByLabelText('放款帳號');
+    const loanInputs = screen.getAllByLabelText('發票號碼');
 
     await fireEvent.update(loanInputs[1], 'A123456789012345');
 
     expect(loanInputs[1]).toHaveValue('1234567890123');
   });
 
-  it('新增放款帳號不足 13 碼時不可建檔', async () => {
+  it('新增發票號碼不足 13 碼時不可建檔', async () => {
     render(UpdateLoansView);
 
     await fireEvent.click(screen.getByRole('button', { name: '新增' }));
 
-    const loanInputs = screen.getAllByLabelText('放款帳號');
+    const loanInputs = screen.getAllByLabelText('發票號碼');
     const amountInputs = screen.getAllByLabelText('當前現欠金額');
     const dateInputs = screen.getAllByLabelText('下期還款日期');
     const nextAmountInputs = screen.getAllByLabelText('下期還款金額');
@@ -160,16 +160,16 @@ describe('UpdateLoansView', () => {
     await fireEvent.update(nextAmountInputs[1], '500');
     await fireEvent.click(screen.getByRole('button', { name: '存檔' }));
 
-    expect(screen.getByRole('status')).toHaveTextContent('第 2 筆放款帳號需為 13 碼數字');
+    expect(screen.getByRole('status')).toHaveTextContent('第 2 筆發票號碼需為 13 碼數字');
     expect(axiosMock.put).not.toHaveBeenCalled();
   });
 
-  it('放款帳號重複時不可建檔', async () => {
+  it('發票號碼重複時不可建檔', async () => {
     render(UpdateLoansView);
 
     await fireEvent.click(screen.getByRole('button', { name: '新增' }));
 
-    const loanInputs = screen.getAllByLabelText('放款帳號');
+    const loanInputs = screen.getAllByLabelText('發票號碼');
     const amountInputs = screen.getAllByLabelText('當前現欠金額');
     const dateInputs = screen.getAllByLabelText('下期還款日期');
     const nextAmountInputs = screen.getAllByLabelText('下期還款金額');
@@ -181,7 +181,7 @@ describe('UpdateLoansView', () => {
     await fireEvent.update(nextAmountInputs[1], '500');
     await fireEvent.click(screen.getByRole('button', { name: '存檔' }));
 
-    expect(screen.getByRole('status')).toHaveTextContent('第 2 筆放款帳號不可重複');
+    expect(screen.getByRole('status')).toHaveTextContent('第 2 筆發票號碼不可重複');
     expect(axiosMock.put).not.toHaveBeenCalled();
   });
 
@@ -190,7 +190,7 @@ describe('UpdateLoansView', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: '新增' }));
 
-    const loanInputs = screen.getAllByLabelText('放款帳號');
+    const loanInputs = screen.getAllByLabelText('發票號碼');
     const amountInputs = screen.getAllByLabelText('當前現欠金額');
     const dateInputs = screen.getAllByLabelText('下期還款日期');
     const nextAmountInputs = screen.getAllByLabelText('下期還款金額');
@@ -206,7 +206,7 @@ describe('UpdateLoansView', () => {
     expect(axiosMock.put).not.toHaveBeenCalled();
   });
 
-  it('存檔後更新放款資訊與 JSON 異動紀錄', async () => {
+  it('存檔後更新發票放款資訊與 JSON 異動紀錄', async () => {
     axiosMock.put.mockResolvedValue({
       data: {
         success: true,
@@ -231,7 +231,7 @@ describe('UpdateLoansView', () => {
                 {
                   loanAccount: '3000000000001',
                   field: 'loanAccount',
-                  fieldName: '放款帳號',
+                  fieldName: '發票號碼',
                   newValue: '3000000000001'
                 }
               ]
@@ -246,7 +246,7 @@ describe('UpdateLoansView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '新增' }));
     expect(axiosMock.put).not.toHaveBeenCalled();
 
-    const loanInputs = screen.getAllByLabelText('放款帳號');
+    const loanInputs = screen.getAllByLabelText('發票號碼');
     const amountInputs = screen.getAllByLabelText('當前現欠金額');
     const dateInputs = screen.getAllByLabelText('下期還款日期');
     const nextAmountInputs = screen.getAllByLabelText('下期還款金額');
@@ -271,9 +271,10 @@ describe('UpdateLoansView', () => {
         }
       ]
     });
-    expect(sessionStore.user.loans).toHaveLength(1);
-    expect(sessionStore.user.loanChangeLogs).toHaveLength(1);
-    expect(sessionStore.user.loanChangeLogs[0].changeItem).toBe('新增');
-    expect(sessionStore.user.loanChangeLogs[0].changeData[0].loanAccount).toBe('3000000000001');
+    expect(sessionStore.user?.loans).toHaveLength(1);
+    expect(sessionStore.user?.loanChangeLogs).toHaveLength(1);
+    expect(sessionStore.user?.loanChangeLogs[0].changeItem).toBe('新增');
+    expect(sessionStore.user?.loanChangeLogs[0].changeData[0].loanAccount).toBe('3000000000001');
   });
 });
+
