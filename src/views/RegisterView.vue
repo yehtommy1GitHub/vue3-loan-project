@@ -3,14 +3,23 @@
 import { onUnmounted, ref } from 'vue';
 // 匯入 vee-validate，集中管理註冊表單欄位與驗證流程。
 import { useField, useForm } from 'vee-validate';
+import type { InvalidSubmissionContext } from 'vee-validate';
 // 匯入 router-link 與 useRouter；RouterLink 用於返回登入，useRouter 用於註冊成功後導頁。
 import { RouterLink, useRouter } from 'vue-router';
 // 匯入共用表單欄位元件，示範 props 與 emit 的實務用法。
 import FormField from '../components/FormField.vue';
 // 匯入註冊 API service。
-import { register } from '../services/authApi';
+import { register } from '../api/modules/authApi';
 // 匯入 session store，註冊成功後保存使用者資料。
 import { sessionStore } from '../stores/sessionStore';
+
+interface RegisterFormValues {
+  account: string;
+  userName: string;
+  password: string;
+}
+
+type FieldValidationResult = true | string;
 
 const router = useRouter();
 const message = ref('');
@@ -18,7 +27,7 @@ const isSubmitting = ref(false);
 let messageTimer: number | null = null;
 
 // 建立 vee-validate 表單，初始欄位與畫面 v-model 對應。
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm } = useForm<RegisterFormValues>({
   initialValues: {
     account: '',
     userName: '',
@@ -27,7 +36,7 @@ const { handleSubmit, resetForm } = useForm({
 });
 
 // 帳號欄位驗證：必填且至少 8 碼。
-const { value: account } = useField<string>('account', (value) => {
+const { value: account } = useField<string>('account', (value: string): FieldValidationResult => {
   const text = String(value ?? '').trim();
 
   if (!text) {
@@ -38,12 +47,12 @@ const { value: account } = useField<string>('account', (value) => {
 });
 
 // 使用者名稱欄位驗證：至少 2 個字，避免新增帳號時出現預設名稱。
-const { value: userName } = useField<string>('userName', (value) => {
+const { value: userName } = useField<string>('userName', (value: string): FieldValidationResult => {
   return String(value ?? '').trim().length >= 2 ? true : '使用者名稱必須大於2長';
 });
 
 // 密碼欄位驗證：必填且至少 8 碼。
-const { value: password } = useField<string>('password', (value) => {
+const { value: password } = useField<string>('password', (value: string): FieldValidationResult => {
   const text = String(value ?? '');
 
   if (!text) {
@@ -53,14 +62,14 @@ const { value: password } = useField<string>('password', (value) => {
   return text.length >= 8 ? true : '帳號及密碼長度需為 8 碼以上';
 });
 
-function clearMessageTimer() {
+function clearMessageTimer(): void {
   if (messageTimer) {
     window.clearTimeout(messageTimer);
     messageTimer = null;
   }
 }
 
-function showMessage(text: string, shouldAutoHide = false) {
+function showMessage(text: string, shouldAutoHide = false): void {
   clearMessageTimer();
   message.value = text;
 
@@ -74,7 +83,7 @@ function showMessage(text: string, shouldAutoHide = false) {
 
 // handleSubmit 會先執行 vee-validate 規則；驗證成功才會呼叫 API。
 const submitRegister = handleSubmit(
-  async () => {
+  async (): Promise<void> => {
     message.value = '';
     isSubmitting.value = true;
 
@@ -91,19 +100,19 @@ const submitRegister = handleSubmit(
       isSubmitting.value = false;
     }
   },
-  ({ errors }) => {
+  ({ errors }: InvalidSubmissionContext<RegisterFormValues>): void => {
     const firstMessage = errors.account || errors.userName || errors.password || '表單資料有誤';
     showMessage(firstMessage, firstMessage === '帳號及密碼長度需為 8 碼以上');
   }
 );
 
-function clearForm() {
+function clearForm(): void {
   resetForm();
   message.value = '';
   clearMessageTimer();
 }
 
-onUnmounted(() => {
+onUnmounted((): void => {
   clearMessageTimer();
 });
 </script>

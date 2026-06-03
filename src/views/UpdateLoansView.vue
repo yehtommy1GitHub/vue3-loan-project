@@ -4,7 +4,8 @@ import { computed, onMounted, reactive, ref } from 'vue';
 // 匯入 useRouter，返回首頁時進行程式化導頁。
 import { useRouter } from 'vue-router';
 // 匯入發票放款資訊更新與匯率 API。
-import { fetchExchangeRates, updateLoans } from '../services/authApi';
+import { fetchExchangeRates } from '../api/modules/exchangeRateApi';
+import { updateLoans } from '../api/modules/loanApi';
 // 匯入表格子元件，放款列的輸入控制由子元件透過 props/emit 處理。
 import LoanRowsEditor from '../components/LoanRowsEditor.vue';
 // 匯入總額摘要元件。
@@ -13,7 +14,7 @@ import LoanTotalsSummary from '../components/LoanTotalsSummary.vue';
 import { sessionStore } from '../stores/sessionStore';
 // 匯入幣別清單、總額計算與金額格式化函式。
 import { calculateLoanTotals, currencyOptions, formatAmount } from '../utils/currencyTotals';
-import type { EditableLoan, Loan, LoanField, LoanNumericField } from '../types/loan';
+import type { EditableLoan, Loan, LoanField, LoanNumericField, LoanTotals, UserProfile } from '../types/loan';
 
 const router = useRouter();
 const message = ref('');
@@ -25,7 +26,7 @@ const totalState = reactive({
   rateMessage: ''
 });
 
-function toDateInputValue(value: string) {
+function toDateInputValue(value: string): string {
   if (!/^\d{8}$/.test(String(value ?? ''))) {
     return '';
   }
@@ -33,7 +34,7 @@ function toDateInputValue(value: string) {
   return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
 }
 
-function fromDateInputValue(value: string) {
+function fromDateInputValue(value: string): string {
   return String(value ?? '').replaceAll('-', '');
 }
 
@@ -54,7 +55,7 @@ function parseAmount(value: string): number | '' {
 }
 
 // 發票號碼只允許 13 碼數字；輸入時先移除非數字，再截斷超過 13 碼的內容。
-function normalizeLoanAccount(value: string) {
+function normalizeLoanAccount(value: string): string {
   return String(value ?? '')
     .replace(/\D/g, '')
     .slice(0, 13);
@@ -70,12 +71,14 @@ const editableLoans = ref<EditableLoan[]>(
     isPersisted: true
   }))
 );
-const currentUser = computed(() => sessionStore.user ?? { account: '', userName: '', loans: [], loanChangeLogs: [] });
-const loanTotals = computed(() =>
+const currentUser = computed<UserProfile>(
+  (): UserProfile => sessionStore.user ?? { account: '', userName: '', loans: [], loanChangeLogs: [] }
+);
+const loanTotals = computed<LoanTotals>((): LoanTotals =>
   calculateLoanTotals(editableLoans.value, totalState.targetCurrency, totalState.exchangeRates)
 );
 
-onMounted(async () => {
+onMounted(async (): Promise<void> => {
   totalState.isLoadingRates = true;
   totalState.rateMessage = '';
 
@@ -89,7 +92,7 @@ onMounted(async () => {
   }
 });
 
-function addLoan() {
+function addLoan(): void {
   editableLoans.value.push({
     loanAccount: '',
     currency: '',
@@ -100,24 +103,24 @@ function addLoan() {
   });
 }
 
-function removeLoan(index: number) {
+function removeLoan(index: number): void {
   editableLoans.value.splice(index, 1);
 }
 
-function updateLoanField({ index, field, value }: { index: number; field: LoanField; value: string }) {
+function updateLoanField({ index, field, value }: { index: number; field: LoanField; value: string }): void {
   editableLoans.value[index][field] = field === 'loanAccount' ? normalizeLoanAccount(value) : value;
 }
 
-function updateAmount({ index, field, value }: { index: number; field: LoanNumericField; value: string }) {
+function updateAmount({ index, field, value }: { index: number; field: LoanNumericField; value: string }): void {
   editableLoans.value[index][field] = parseAmount(value);
 }
 
-function backHome() {
+function backHome(): void {
   void router.push({ name: 'home' });
 }
 
-function validateLoans() {
-  const loanAccountSet = new Set();
+function validateLoans(): string {
+  const loanAccountSet = new Set<string>();
 
   for (const [index, loan] of editableLoans.value.entries()) {
     const rowNumber = index + 1;
@@ -162,7 +165,7 @@ function validateLoans() {
 }
 
 function buildPayload(): Loan[] {
-  return editableLoans.value.map((loan) => ({
+  return editableLoans.value.map((loan: EditableLoan): Loan => ({
     loanAccount: String(loan.loanAccount).trim(),
     currency: String(loan.currency).trim(),
     currentOutstandingAmount: Number(loan.currentOutstandingAmount),
@@ -171,7 +174,7 @@ function buildPayload(): Loan[] {
   }));
 }
 
-async function saveLoans() {
+async function saveLoans(): Promise<void> {
   message.value = '';
 
   const validationMessage = validateLoans();

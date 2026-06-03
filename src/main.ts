@@ -7,7 +7,7 @@ import router from './router';
 // 匯入 Vuex store，讓所有頁面共用登入後使用者狀態。
 import { store } from './store';
 // 匯入 API 模式設定，用來判斷目前是否為 mock 環境。
-import { backendApiConfig } from './config/backendApiConfig';
+import { backendApiConfig } from './api/config/backendApiConfig';
 // 匯入網頁標題工具，避免正式與 mock 環境名稱混淆。
 import { getPageTitle } from './utils/pageTitle';
 // 匯入 vue-next-select 預設樣式，讓幣別下拉元件正常呈現。

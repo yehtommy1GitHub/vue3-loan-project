@@ -1,6 +1,6 @@
 # Vue3 貸款資料示範系統
 
-最後更新時間：2026/05/25 19:47:07
+最後更新時間：2026/06/03 14:24:20
 
 本專案是一個 Vue3 + Vite 的前端示範系統，搭配 Express mock API 與 JSON 檔案模擬後端資料。主要功能包含登入、註冊、使用者名稱建立、會員首頁、貸款資料顯示、貸款資料異動與異動紀錄查詢。
 
@@ -22,10 +22,22 @@
 src/
   App.vue
   main.ts
-  config/backendApiConfig.ts
+  api/
+    config/backendApiConfig.ts
+    client/httpClient.ts
+    client/request.ts
+    modules/
+      authApi.ts
+      userApi.ts
+      loanApi.ts
+      exchangeRateApi.ts
+      apiHealthApi.ts
   router/index.ts
   components/
-  services/authApi.ts
+  config/backendApiConfig.ts
+  services/
+    authApi.ts
+    apiHealthService.ts
   stores/sessionStore.ts
   utils/currencyTotals.ts
   styles/main.css
@@ -36,7 +48,12 @@ server/
   user-profiles.json
   user-loans.json
   user-loan-change-logs.json
+VUE3專案文件SOP.md
 ```
+
+## 專案文件 SOP
+
+本專案新增 `VUE3專案文件SOP.md`，依照現行 Vue3 + TypeScript + API 分層架構，整理專案建立、功能擴充、mock 安全資料、測試驗證、文件維護與 GitHub 推送前檢查流程。後續新增功能或重建類似 Vue3 專案時，可依該 SOP 的序列表與檢查表執行。
 
 ## 安裝與啟動
 
@@ -77,7 +94,8 @@ VITE_API_TIMEOUT_MS=8000
 - `VITE_USE_BACKEND_API=false`：呼叫本機 mock API。
 - `VITE_USE_BACKEND_API=true`：呼叫實際後端 API。
 - `VITE_USE_BACKEND_API=true` 時必須設定 `VITE_BACKEND_API_BASE_URL`；若未設定會直接顯示設定錯誤，不會 fallback 回 mock API。
-- 後端 API 的 URL、METHOD 與動態路徑集中設定於 `src/config/backendApiConfig.ts`，正式串接時可直接調整此設定檔或 `.env` URL。
+- 後端 API 的 URL、METHOD 與動態路徑集中設定於 `src/api/config/backendApiConfig.ts`，正式串接時可直接調整此設定檔或 `.env` URL。
+- `src/config/backendApiConfig.ts` 保留為相容舊路徑的 re-export，後續新程式請優先引用 `src/api` 自建模組。
 - 本機實際後端 API 測試值：`VITE_BACKEND_API_BASE_URL=http://127.0.0.1:8080`。
 - `.env.example` 僅是範例檔，Vite 不會載入；本機切換後端 API 時需建立 `.env` 並重啟 Vite dev server。
 - 2026/05/25 10:29:18 已實測 `http://127.0.0.1:8080/exchange-rates` 與 `http://127.0.0.1:8080/login` 可回應；前端匯率頁顯示 `SGD=23.8`、`EUR=34.9`、`GBP=40.75`，確認來源為後端 API。
@@ -127,6 +145,19 @@ VITE_API_TIMEOUT_MS=8000
 | PUT | `/users/{account}/loans` | 更新使用者貸款資料 |
 | GET | `/users/{account}/loan-change-logs` | 查詢貸款異動紀錄 |
 | GET | `/exchange-rates` | 模擬查詢匯率資料，供放款總額折算使用 |
+
+## API 自建模組分層
+
+本次已將原本集中於 service 的 API 呼叫拆成三層，方便後續擴充與供其他 Vue3 專案重用：
+
+| 分層 | 路徑 | 用途 |
+|---|---|---|
+| API 設定層 | `src/api/config/backendApiConfig.ts` | 管理 mock/backend 模式、base URL、timeout、端點 method、URL 與健康檢查設定。 |
+| API Client 層 | `src/api/client/httpClient.ts`、`src/api/client/request.ts` | 建立共用 Axios instance，統一 request、錯誤轉換、success 欄位檢查與端點解析。 |
+| 業務 API 層 | `src/api/modules/*.ts` | 依業務拆分登入、註冊、使用者、發票放款、匯率與後台健康檢查 API，並集中做 response 正規化。 |
+| 匯出入口 | `src/api/index.ts` | 彙整匯出 API 設定、Client 與業務 API，供專案內或未來其他專案引用。 |
+
+`src/services/authApi.ts`、`src/services/apiHealthService.ts` 與 `src/config/backendApiConfig.ts` 目前只保留相容舊引用的 re-export；新功能請改由 `src/api/modules/*` 或 `src/api/index.ts` 匯入。
 
 ## 後台 API 狀態檢查
 
@@ -201,9 +232,11 @@ npm run type-check
 
 最近一次完整驗證結果：
 
+- 驗證時間：2026/05/29 22:14:50。
 - `npm run type-check`：`vue-tsc --noEmit` 通過。
 - `npm test`：9 個測試檔、37 個測試案例通過。
 - `npm run build`：`vue-tsc --noEmit` 與 Vite production build 成功。
+- API 自建模組三層架構已完成型別檢查與單元測試驗證。
 - 實際網頁操作驗證通過：註冊頁可輸入使用者名稱；1 字元使用者名稱會顯示 `使用者名稱必須大於2長`；2 字元以上使用者名稱可註冊成功並於首頁顯示。
 - 放款資訊與放款資訊更新頁可顯示總現欠金額、下期總還款金額，並可透過幣別下拉選單折算指定幣別。
 

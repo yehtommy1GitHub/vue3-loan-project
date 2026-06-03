@@ -14,7 +14,7 @@ export function convertAmount(
   sourceCurrency: string,
   targetCurrency: string,
   rates: Record<string, number>
-) {
+): number {
   const numericAmount = Number(amount);
   const sourceRate = Number(rates?.[sourceCurrency]);
   const targetRate = Number(rates?.[targetCurrency]);
@@ -28,8 +28,8 @@ export function convertAmount(
 
 // 將所有放款依使用者指定幣別折算後加總，提供快速掌握總現欠與總還款金額。
 export function calculateLoanTotals(loans: Loan[], targetCurrency: string, rates: Record<string, number>): LoanTotals {
-  return loans.reduce(
-    (totals, loan) => {
+  return loans.reduce<LoanTotals>(
+    (totals: LoanTotals, loan: Loan): LoanTotals => {
       totals.currentOutstandingAmount += convertAmount(
         loan.currentOutstandingAmount,
         loan.currency,
@@ -59,7 +59,7 @@ export function buildExchangeRateRows(
     return [];
   }
 
-  return options.map((currency) => {
+  return options.map((currency: string): ExchangeRateRow => {
     const targetRate = Number(rates?.[currency]);
     const baseToCurrency = Number.isFinite(targetRate) ? baseRate / targetRate : 0;
     const currencyToBase = Number.isFinite(targetRate) ? targetRate / baseRate : 0;
@@ -72,7 +72,7 @@ export function buildExchangeRateRows(
   });
 }
 
-export function formatAmount(value: AmountValue) {
+export function formatAmount(value: AmountValue): string {
   const numericValue = Number(value);
 
   return Number.isFinite(numericValue) ? amountFormatter.format(numericValue) : '';

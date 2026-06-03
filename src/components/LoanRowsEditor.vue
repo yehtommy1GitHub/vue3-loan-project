@@ -19,11 +19,11 @@ const emit = defineEmits<{
   'update-amount': [payload: { index: number; field: LoanNumericField; value: string }];
 }>();
 
-function updateField(index: number, field: LoanField, value: string) {
+function updateField(index: number, field: LoanField, value: string): void {
   emit('update-field', { index, field, value });
 }
 
-function updateAmount(index: number, field: LoanNumericField, value: string) {
+function updateAmount(index: number, field: LoanNumericField, value: string): void {
   emit('update-amount', { index, field, value });
 }
 </script>

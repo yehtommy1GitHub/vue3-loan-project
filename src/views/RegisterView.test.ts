@@ -6,11 +6,11 @@ import { sessionStore } from '../stores/sessionStore';
 
 const push = vi.fn();
 const axiosMock = vi.hoisted(() => {
-  const post = vi.fn();
+  const request = vi.fn();
 
   return {
-    post,
-    create: vi.fn(() => ({ post }))
+    request,
+    create: vi.fn(() => ({ request }))
   };
 });
 
@@ -33,7 +33,7 @@ vi.mock('vue-router', () => ({
 describe('RegisterView', () => {
   beforeEach(() => {
     push.mockClear();
-    axiosMock.post.mockReset();
+    axiosMock.request.mockReset();
     axiosMock.create.mockClear();
     sessionStore.clear();
     vi.useRealTimers();
@@ -45,7 +45,7 @@ describe('RegisterView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('帳密未輸入');
-    expect(axiosMock.post).not.toHaveBeenCalled();
+    expect(axiosMock.request).not.toHaveBeenCalled();
   });
 
   it('帳號或密碼不足 8 碼時不送出 API，且錯誤訊息 5 秒後消失', async () => {
@@ -58,7 +58,7 @@ describe('RegisterView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('帳號及密碼長度需為 8 碼以上');
-    expect(axiosMock.post).not.toHaveBeenCalled();
+    expect(axiosMock.request).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(5000);
 
@@ -76,11 +76,11 @@ describe('RegisterView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('使用者名稱必須大於2長');
-    expect(axiosMock.post).not.toHaveBeenCalled();
+    expect(axiosMock.request).not.toHaveBeenCalled();
   });
 
   it('新註冊用戶成功時 loans 與 loanChangeLogs 為空陣列並跳轉首頁', async () => {
-    axiosMock.post.mockResolvedValue({
+    axiosMock.request.mockResolvedValue({
       data: {
         success: true,
         user: {
@@ -100,10 +100,14 @@ describe('RegisterView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith({ name: 'home' }));
-    expect(axiosMock.post).toHaveBeenCalledWith('/register', {
-      account: 'NEWUSER1',
-      password: 'DemoPass123!',
-      userName: '王小明'
+    expect(axiosMock.request).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/register',
+      data: {
+        account: 'NEWUSER1',
+        password: 'DemoPass123!',
+        userName: '王小明'
+      }
     });
     expect(sessionStore.user).toEqual({
       account: 'NEWUSER1',

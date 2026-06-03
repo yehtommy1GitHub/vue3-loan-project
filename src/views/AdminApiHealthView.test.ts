@@ -5,15 +5,11 @@ import AdminApiHealthView from './AdminApiHealthView.vue';
 import { backendApiConfig } from '../config/backendApiConfig';
 
 const axiosMock = vi.hoisted(() => {
-  const get = vi.fn();
-  const post = vi.fn();
-  const put = vi.fn();
+  const request = vi.fn();
 
   return {
-    get,
-    post,
-    put,
-    create: vi.fn(() => ({ get, post, put }))
+    request,
+    create: vi.fn(() => ({ request }))
   };
 });
 
@@ -25,12 +21,9 @@ vi.mock('axios', () => ({
 
 describe('AdminApiHealthView', () => {
   beforeEach(() => {
-    axiosMock.get.mockReset();
-    axiosMock.post.mockReset();
-    axiosMock.put.mockReset();
+    axiosMock.request.mockReset();
     axiosMock.create.mockClear();
-    axiosMock.get.mockResolvedValue({ data: { success: true } });
-    axiosMock.post.mockResolvedValue({ data: { success: true } });
+    axiosMock.request.mockResolvedValue({ data: { success: true } });
   });
 
   it('顯示完整 URL、中文名稱與目前狀態，且不檢查會異動資料的 API', async () => {
@@ -56,11 +49,15 @@ describe('AdminApiHealthView', () => {
     expect(within(table).queryByText(/undefined/)).not.toBeInTheDocument();
     expect(within(table).getByText('未檢查（避免新增測試資料）')).toBeInTheDocument();
     expect(within(table).getByText('未檢查（避免更新放款資料）')).toBeInTheDocument();
-    expect(axiosMock.post).toHaveBeenCalledWith('/login', {
-      account: 'DEMO0001',
-      password: 'DemoPass123!'
+    expect(axiosMock.request).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/login',
+      data: {
+        account: 'DEMO0001',
+        password: 'DemoPass123!'
+      }
     });
-    expect(axiosMock.put).not.toHaveBeenCalled();
+    expect(axiosMock.request).not.toHaveBeenCalledWith(expect.objectContaining({ method: 'PUT' }));
   });
 
   it('可手動重新檢查 API 狀態', async () => {
@@ -68,11 +65,12 @@ describe('AdminApiHealthView', () => {
 
     await waitFor(() => expect(screen.getAllByText('正常').length).toBeGreaterThan(0));
 
-    axiosMock.get.mockClear();
-    axiosMock.post.mockClear();
+    axiosMock.request.mockClear();
     await fireEvent.click(screen.getByRole('button', { name: '重新檢查' }));
 
-    await waitFor(() => expect(axiosMock.post).toHaveBeenCalledWith('/login', expect.any(Object)));
-    expect(axiosMock.get).toHaveBeenCalledWith('/exchange-rates');
+    await waitFor(() =>
+      expect(axiosMock.request).toHaveBeenCalledWith(expect.objectContaining({ method: 'POST', url: '/login' }))
+    );
+    expect(axiosMock.request).toHaveBeenCalledWith(expect.objectContaining({ method: 'GET', url: '/exchange-rates' }));
   });
 });

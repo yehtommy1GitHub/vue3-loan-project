@@ -8,11 +8,11 @@ const replace = vi.fn();
 const push = vi.fn();
 let routeQuery: Record<string, string> = {};
 const axiosMock = vi.hoisted(() => {
-  const get = vi.fn();
+  const request = vi.fn();
 
   return {
-    get,
-    create: vi.fn(() => ({ get }))
+    request,
+    create: vi.fn(() => ({ request }))
   };
 });
 
@@ -42,9 +42,9 @@ describe('ExchangeRatesView', () => {
     routeQuery = {};
     replace.mockClear();
     push.mockClear();
-    axiosMock.get.mockReset();
+    axiosMock.request.mockReset();
     axiosMock.create.mockClear();
-    axiosMock.get.mockResolvedValue({
+    axiosMock.request.mockResolvedValue({
       data: {
         success: true,
         baseCurrency: 'TWD',

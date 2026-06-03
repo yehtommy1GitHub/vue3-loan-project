@@ -4,14 +4,15 @@ import { computed, onMounted, reactive } from 'vue';
 // 匯入 RouterLink 與 useRouter；RouterLink 用於頁面導覽，useRouter 用於登出後導回登入頁。
 import { RouterLink, useRouter } from 'vue-router';
 // 匯入使用者查詢與匯率 API，首頁載入時同步最新放款、異動紀錄與折算匯率。
-import { fetchExchangeRates, fetchUser } from '../services/authApi';
+import { fetchExchangeRates } from '../api/modules/exchangeRateApi';
+import { fetchUser } from '../api/modules/userApi';
 // 匯入總額摘要元件。
 import LoanTotalsSummary from '../components/LoanTotalsSummary.vue';
 // 匯入 sessionStore，讀取與更新登入後使用者狀態。
 import { sessionStore } from '../stores/sessionStore';
 // 匯入幣別清單、總額計算與金額格式化函式。
 import { calculateLoanTotals, currencyOptions, formatAmount } from '../utils/currencyTotals';
-import type { UserProfile } from '../types/loan';
+import type { Loan, LoanChangeLog, LoanTotals, UserProfile } from '../types/loan';
 
 const router = useRouter();
 const totalState = reactive({
@@ -22,17 +23,17 @@ const totalState = reactive({
 });
 
 const emptyUser: UserProfile = { account: '', userName: '', loans: [], loanChangeLogs: [] };
-const user = computed(() => sessionStore.user ?? emptyUser);
-const loans = computed(() => (Array.isArray(user.value.loans) ? user.value.loans : []));
-const loanChangeLogs = computed(() =>
+const user = computed<UserProfile>((): UserProfile => sessionStore.user ?? emptyUser);
+const loans = computed<Loan[]>((): Loan[] => (Array.isArray(user.value.loans) ? user.value.loans : []));
+const loanChangeLogs = computed<LoanChangeLog[]>((): LoanChangeLog[] =>
   Array.isArray(user.value.loanChangeLogs) ? user.value.loanChangeLogs : []
 );
-const loanTotals = computed(() =>
+const loanTotals = computed<LoanTotals>((): LoanTotals =>
   calculateLoanTotals(loans.value, totalState.targetCurrency, totalState.exchangeRates)
 );
 
 // 首頁載入後以 account 再向 API 取最新資料；若 API 暫時失敗，保留既有 session 畫面。
-onMounted(async () => {
+onMounted(async (): Promise<void> => {
   if (!sessionStore.user?.account) {
     return;
   }
@@ -62,15 +63,15 @@ onMounted(async () => {
   }
 });
 
-function formatChangeValue(value: unknown) {
+function formatChangeValue(value: unknown): string {
   if (value === '' || value === null || value === undefined) {
     return '-';
   }
 
-  return value;
+  return String(value);
 }
 
-function logout() {
+function logout(): void {
   sessionStore.clear();
   void router.push({ name: 'login' });
 }

@@ -4,7 +4,7 @@ import { ref } from 'vue';
 // 匯入 RouterLink 與 useRouter；RouterLink 負責註冊頁導覽，useRouter 負責登入成功後導頁。
 import { RouterLink, useRouter } from 'vue-router';
 // 匯入登入 API service。
-import { login } from '../services/authApi';
+import { login } from '../api/modules/authApi';
 // 匯入 session store，登入成功後保存使用者資料。
 import { sessionStore } from '../stores/sessionStore';
 
@@ -14,7 +14,7 @@ const password = ref('');
 const message = ref('');
 const isSubmitting = ref(false);
 
-function validateCredentials() {
+function validateCredentials(): boolean {
   if (!account.value || !password.value) {
     message.value = '帳密未輸入';
     return false;
@@ -28,7 +28,7 @@ function validateCredentials() {
   return true;
 }
 
-async function submitLogin() {
+async function submitLogin(): Promise<void> {
   message.value = '';
 
   if (!validateCredentials()) {

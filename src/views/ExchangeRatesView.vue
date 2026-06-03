@@ -5,15 +5,16 @@ import { computed, onMounted, reactive, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 // 匯入 vue-next-select，讓本位幣選擇體驗與發票放款總額區一致。
 import VueNextSelect from 'vue-next-select';
-// 匯入 mock 匯率 API。
-import { fetchExchangeRates } from '../services/authApi';
+// 匯入匯率 API 業務模組。
+import { fetchExchangeRates } from '../api/modules/exchangeRateApi';
 // 匯入幣別清單、匯率比值列與金額格式化工具。
 import { buildExchangeRateRows, currencyOptions, formatAmount } from '../utils/currencyTotals';
+import type { ExchangeRateRow } from '../types/loan';
 
 const route = useRoute();
 const router = useRouter();
 
-function normalizeBaseCurrency(value: unknown) {
+function normalizeBaseCurrency(value: unknown): string {
   const candidate = String(value ?? '').toUpperCase();
 
   return currencyOptions.includes(candidate) ? candidate : 'TWD';
@@ -27,19 +28,19 @@ const rateState = reactive({
   message: ''
 });
 
-const exchangeRateRows = computed(() =>
+const exchangeRateRows = computed<ExchangeRateRow[]>((): ExchangeRateRow[] =>
   buildExchangeRateRows(rateState.baseCurrency, rateState.rates, currencyOptions)
 );
 
 // 本位幣切換時同步網址 query，方便使用者分享或重新整理後維持目前匯率視角。
 watch(
   () => rateState.baseCurrency,
-  (baseCurrency) => {
+  (baseCurrency: string): void => {
     router.replace({ name: 'exchangeRates', query: { baseCurrency } });
   }
 );
 
-onMounted(async () => {
+onMounted(async (): Promise<void> => {
   rateState.isLoading = true;
   rateState.message = '';
 

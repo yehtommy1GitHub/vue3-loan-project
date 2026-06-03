@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue';
 import axios from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { h } from 'vue';
 import UpdateLoansView from './UpdateLoansView.vue';
@@ -7,13 +8,11 @@ import { sessionStore } from '../stores/sessionStore';
 
 const push = vi.fn();
 const axiosMock = vi.hoisted(() => {
-  const get = vi.fn();
-  const put = vi.fn();
+  const request = vi.fn();
 
   return {
-    get,
-    put,
-    create: vi.fn(() => ({ get, put }))
+    request,
+    create: vi.fn(() => ({ request }))
   };
 });
 
@@ -33,23 +32,45 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push })
 }));
 
+function buildExchangeRatesResponse(): { data: { success: boolean; baseCurrency: string; rates: Record<string, number>; updatedAt: string } } {
+  return {
+    data: {
+      success: true,
+      baseCurrency: 'TWD',
+      rates: {
+        TWD: 1,
+        USD: 32
+      },
+      updatedAt: '2026/05/24 20:00:00'
+    }
+  };
+}
+
+function mockExchangeRateRequest(): void {
+  axiosMock.request.mockImplementation((config: AxiosRequestConfig) => {
+    if (config.url === '/exchange-rates') {
+      return Promise.resolve(buildExchangeRatesResponse());
+    }
+
+    return Promise.resolve({ data: { success: true } });
+  });
+}
+
+function expectNoUpdateLoansRequest(): void {
+  expect(axiosMock.request).not.toHaveBeenCalledWith(
+    expect.objectContaining({
+      method: 'PUT',
+      url: '/users/DEMO0001/loans'
+    })
+  );
+}
+
 describe('UpdateLoansView', () => {
   beforeEach(() => {
     push.mockClear();
-    axiosMock.get.mockReset();
-    axiosMock.put.mockReset();
+    axiosMock.request.mockReset();
     axiosMock.create.mockClear();
-    axiosMock.get.mockResolvedValue({
-      data: {
-        success: true,
-        baseCurrency: 'TWD',
-        rates: {
-          TWD: 1,
-          USD: 32
-        },
-        updatedAt: '2026/05/24 20:00:00'
-      }
-    });
+    mockExchangeRateRequest();
     sessionStore.clear();
     sessionStore.setUser({
       account: 'DEMO0001',
@@ -67,7 +88,7 @@ describe('UpdateLoansView', () => {
     });
   });
 
-  async function chooseCurrency(index: number, currency: string) {
+  async function chooseCurrency(index: number, currency: string): Promise<void> {
     const currencySelects = screen.getAllByLabelText('幣別');
 
     await fireEvent.click(currencySelects[index]);
@@ -80,7 +101,7 @@ describe('UpdateLoansView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '返回' }));
 
     expect(push).toHaveBeenCalledWith({ name: 'home' });
-    expect(axiosMock.put).not.toHaveBeenCalled();
+    expectNoUpdateLoansRequest();
   });
 
   it('既有發票號碼不可編輯，新增發票號碼可輸入', async () => {
@@ -115,7 +136,7 @@ describe('UpdateLoansView', () => {
     expect(screen.getByLabelText('當前現欠金額')).toHaveValue('125,000');
     expect(screen.getByLabelText('下期還款金額')).toHaveValue('8,500');
     expect(screen.getByRole('heading', { name: '發票放款總額' })).toBeInTheDocument();
-    expect(screen.getByText('發票發票總現欠金額')).toBeInTheDocument();
+    expect(screen.getByText('發票總現欠金額')).toBeInTheDocument();
     expect(screen.getByText('下期總還款金額')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '當前匯率資訊' })).toHaveAttribute('target', '_blank');
     expect(screen.getByRole('link', { name: '當前匯率資訊' })).toHaveAttribute('rel', 'noopener noreferrer');
@@ -128,7 +149,7 @@ describe('UpdateLoansView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '存檔' }));
 
     expect(screen.getByRole('status')).toHaveTextContent('第 2 筆資料未完整輸入');
-    expect(axiosMock.put).not.toHaveBeenCalled();
+    expectNoUpdateLoansRequest();
   });
 
   it('發票號碼輸入時只保留 13 碼數字', async () => {
@@ -161,7 +182,7 @@ describe('UpdateLoansView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '存檔' }));
 
     expect(screen.getByRole('status')).toHaveTextContent('第 2 筆發票號碼需為 13 碼數字');
-    expect(axiosMock.put).not.toHaveBeenCalled();
+    expectNoUpdateLoansRequest();
   });
 
   it('發票號碼重複時不可建檔', async () => {
@@ -182,7 +203,7 @@ describe('UpdateLoansView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '存檔' }));
 
     expect(screen.getByRole('status')).toHaveTextContent('第 2 筆發票號碼不可重複');
-    expect(axiosMock.put).not.toHaveBeenCalled();
+    expectNoUpdateLoansRequest();
   });
 
   it('當前現欠金額小於下期還款金額時不可建檔', async () => {
@@ -203,48 +224,54 @@ describe('UpdateLoansView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '存檔' }));
 
     expect(screen.getByRole('status')).toHaveTextContent('第 2 筆當前現欠金額必須大於等於下期還款金額');
-    expect(axiosMock.put).not.toHaveBeenCalled();
+    expectNoUpdateLoansRequest();
   });
 
   it('存檔後更新發票放款資訊與 JSON 異動紀錄', async () => {
-    axiosMock.put.mockResolvedValue({
-      data: {
-        success: true,
-        user: {
-          account: 'DEMO0001',
-          userName: 'tommy使用者',
-          loans: [
-            {
-              loanAccount: '3000000000001',
-              currency: 'USD',
-              currentOutstandingAmount: 5000.123456,
-              nextPaymentDate: '20260801',
-              nextPaymentAmount: 500.123456
-            }
-          ],
-          loanChangeLogs: [
-            {
-              changedAt: '2026/05/23 12:01:00',
-              changedBy: 'tommy使用者',
-              changeItem: '新增',
-              changeData: [
-                {
-                  loanAccount: '3000000000001',
-                  field: 'loanAccount',
-                  fieldName: '發票號碼',
-                  newValue: '3000000000001'
-                }
-              ]
-            }
-          ]
-        }
+    axiosMock.request.mockImplementation((config: AxiosRequestConfig) => {
+      if (config.url === '/exchange-rates') {
+        return Promise.resolve(buildExchangeRatesResponse());
       }
+
+      return Promise.resolve({
+        data: {
+          success: true,
+          user: {
+            account: 'DEMO0001',
+            userName: 'tommy使用者',
+            loans: [
+              {
+                loanAccount: '3000000000001',
+                currency: 'USD',
+                currentOutstandingAmount: 5000.123456,
+                nextPaymentDate: '20260801',
+                nextPaymentAmount: 500.123456
+              }
+            ],
+            loanChangeLogs: [
+              {
+                changedAt: '2026/05/23 12:01:00',
+                changedBy: 'tommy使用者',
+                changeItem: '新增',
+                changeData: [
+                  {
+                    loanAccount: '3000000000001',
+                    field: 'loanAccount',
+                    fieldName: '發票號碼',
+                    newValue: '3000000000001'
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      });
     });
 
     render(UpdateLoansView);
 
     await fireEvent.click(screen.getByRole('button', { name: '新增' }));
-    expect(axiosMock.put).not.toHaveBeenCalled();
+    expectNoUpdateLoansRequest();
 
     const loanInputs = screen.getAllByLabelText('發票號碼');
     const amountInputs = screen.getAllByLabelText('當前現欠金額');
@@ -260,16 +287,20 @@ describe('UpdateLoansView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '存檔' }));
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('存檔成功'));
-    expect(axiosMock.put).toHaveBeenCalledWith('/users/DEMO0001/loans', {
-      loans: [
-        {
-          loanAccount: '3000000000001',
-          currency: 'USD',
-          currentOutstandingAmount: 5000.123456,
-          nextPaymentDate: '20260801',
-          nextPaymentAmount: 500.123456
-        }
-      ]
+    expect(axiosMock.request).toHaveBeenCalledWith({
+      method: 'PUT',
+      url: '/users/DEMO0001/loans',
+      data: {
+        loans: [
+          {
+            loanAccount: '3000000000001',
+            currency: 'USD',
+            currentOutstandingAmount: 5000.123456,
+            nextPaymentDate: '20260801',
+            nextPaymentAmount: 500.123456
+          }
+        ]
+      }
     });
     expect(sessionStore.user?.loans).toHaveLength(1);
     expect(sessionStore.user?.loanChangeLogs).toHaveLength(1);

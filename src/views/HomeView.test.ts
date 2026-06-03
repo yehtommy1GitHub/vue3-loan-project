@@ -20,7 +20,7 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push })
 }));
 
-vi.mock('../services/authApi', () => ({
+vi.mock('../api/modules/exchangeRateApi', () => ({
   fetchExchangeRates: vi.fn(async () => ({
     baseCurrency: 'TWD',
     rates: {
@@ -28,7 +28,10 @@ vi.mock('../services/authApi', () => ({
       USD: 32
     },
     updatedAt: '2026/05/24 20:00:00'
-  })),
+  }))
+}));
+
+vi.mock('../api/modules/userApi', () => ({
   fetchUser: vi.fn(async () => sessionStore.user)
 }));
 

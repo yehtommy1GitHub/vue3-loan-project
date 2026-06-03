@@ -27,9 +27,16 @@
         {
           "loanAccount": "2222222222222",
           "currency": "JPY",
-          "currentOutstandingAmount": 111111111,
+          "currentOutstandingAmount": 11111111100,
           "nextPaymentDate": "20260525",
           "nextPaymentAmount": 33333333
+        },
+        {
+          "loanAccount": "1211111111111",
+          "currency": "TWD",
+          "currentOutstandingAmount": 100,
+          "nextPaymentDate": "20260617",
+          "nextPaymentAmount": 1
         }
       ]
     },
@@ -113,6 +120,25 @@
           "currentOutstandingAmount": 1000000000,
           "nextPaymentDate": "20260529",
           "nextPaymentAmount": 1000000
+        }
+      ]
+    },
+    {
+      "account": "DEMO12345",
+      "loans": [
+        {
+          "loanAccount": "0000000000001",
+          "currency": "TWD",
+          "currentOutstandingAmount": 10,
+          "nextPaymentDate": "20260612",
+          "nextPaymentAmount": 1
+        },
+        {
+          "loanAccount": "0000000000002",
+          "currency": "USD",
+          "currentOutstandingAmount": 10,
+          "nextPaymentDate": "20260612",
+          "nextPaymentAmount": 1
         }
       ]
     }

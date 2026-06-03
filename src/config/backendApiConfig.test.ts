@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-async function loadConfig() {
+async function loadConfig(): Promise<typeof import('./backendApiConfig')> {
   vi.resetModules();
 
   return import('./backendApiConfig');

@@ -4,6 +4,57 @@
       "account": "DEMO0001",
       "loanChangeLogs": [
         {
+          "changedAt": "2026/06/03 21:49:36",
+          "changedBy": "我是一號",
+          "changeItem": "新增",
+          "changeData": [
+            {
+              "loanAccount": "1211111111111",
+              "field": "loanAccount",
+              "fieldName": "發票號碼",
+              "newValue": "1211111111111"
+            },
+            {
+              "loanAccount": "1211111111111",
+              "field": "currency",
+              "fieldName": "幣別",
+              "newValue": "TWD"
+            },
+            {
+              "loanAccount": "1211111111111",
+              "field": "currentOutstandingAmount",
+              "fieldName": "當前現欠金額",
+              "newValue": 100
+            },
+            {
+              "loanAccount": "1211111111111",
+              "field": "nextPaymentDate",
+              "fieldName": "下期還款日期",
+              "newValue": "20260617"
+            },
+            {
+              "loanAccount": "1211111111111",
+              "field": "nextPaymentAmount",
+              "fieldName": "下期還款金額",
+              "newValue": 1
+            }
+          ]
+        },
+        {
+          "changedAt": "2026/06/03 21:48:41",
+          "changedBy": "我是一號",
+          "changeItem": "修改",
+          "changeData": [
+            {
+              "loanAccount": "2222222222222",
+              "field": "currentOutstandingAmount",
+              "fieldName": "當前現欠金額",
+              "oldValue": 111111111,
+              "newValue": 11111111100
+            }
+          ]
+        },
+        {
           "changedAt": "2026/05/25 01:33:57",
           "changedBy": "我是一號",
           "changeItem": "修改",
@@ -383,6 +434,85 @@
               "field": "nextPaymentAmount",
               "fieldName": "下期還款金額",
               "newValue": 1000000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "account": "DEMO12345",
+      "loanChangeLogs": [
+        {
+          "changedAt": "2026/06/03 21:50:58",
+          "changedBy": "我是測試12345",
+          "changeItem": "新增",
+          "changeData": [
+            {
+              "loanAccount": "0000000000001",
+              "field": "loanAccount",
+              "fieldName": "發票號碼",
+              "newValue": "0000000000001"
+            },
+            {
+              "loanAccount": "0000000000001",
+              "field": "currency",
+              "fieldName": "幣別",
+              "newValue": "TWD"
+            },
+            {
+              "loanAccount": "0000000000001",
+              "field": "currentOutstandingAmount",
+              "fieldName": "當前現欠金額",
+              "newValue": 10
+            },
+            {
+              "loanAccount": "0000000000001",
+              "field": "nextPaymentDate",
+              "fieldName": "下期還款日期",
+              "newValue": "20260612"
+            },
+            {
+              "loanAccount": "0000000000001",
+              "field": "nextPaymentAmount",
+              "fieldName": "下期還款金額",
+              "newValue": 1
+            }
+          ]
+        },
+        {
+          "changedAt": "2026/06/03 21:50:58",
+          "changedBy": "我是測試12345",
+          "changeItem": "新增",
+          "changeData": [
+            {
+              "loanAccount": "0000000000002",
+              "field": "loanAccount",
+              "fieldName": "發票號碼",
+              "newValue": "0000000000002"
+            },
+            {
+              "loanAccount": "0000000000002",
+              "field": "currency",
+              "fieldName": "幣別",
+              "newValue": "USD"
+            },
+            {
+              "loanAccount": "0000000000002",
+              "field": "currentOutstandingAmount",
+              "fieldName": "當前現欠金額",
+              "newValue": 10
+            },
+            {
+              "loanAccount": "0000000000002",
+              "field": "nextPaymentDate",
+              "fieldName": "下期還款日期",
+              "newValue": "20260612"
+            },
+            {
+              "loanAccount": "0000000000002",
+              "field": "nextPaymentAmount",
+              "fieldName": "下期還款金額",
+              "newValue": 1
             }
           ]
         }

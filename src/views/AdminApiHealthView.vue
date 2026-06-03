@@ -2,16 +2,17 @@
 // 匯入 onMounted 與 ref；後台檢查頁只需要保存檢查結果與載入狀態。
 import { onMounted, ref } from 'vue';
 // 匯入 API 健康檢查服務，集中處理端點清單、執行環境資訊與實際探測。
-import { buildApiHealthRows, checkApiHealth, getApiHealthRuntimeInfo } from '../services/apiHealthService';
+import { buildApiHealthRows, checkApiHealth, getApiHealthRuntimeInfo } from '../api/modules/apiHealthApi';
+import type { ApiHealthRow, ApiHealthRuntimeInfo } from '../types/api';
 
-const rows = ref(buildApiHealthRows());
+const rows = ref<ApiHealthRow[]>(buildApiHealthRows());
 const isChecking = ref(false);
-const runtimeInfo = ref(getApiHealthRuntimeInfo());
+const runtimeInfo = ref<ApiHealthRuntimeInfo>(getApiHealthRuntimeInfo());
 
-async function refreshHealth() {
+async function refreshHealth(): Promise<void> {
   isChecking.value = true;
   runtimeInfo.value = getApiHealthRuntimeInfo();
-  rows.value = rows.value.map((row) => ({
+  rows.value = rows.value.map((row: ApiHealthRow): ApiHealthRow => ({
     ...row,
     currentStatus: row.currentStatus.startsWith('未檢查') ? row.currentStatus : '檢查中'
   }));
@@ -24,7 +25,7 @@ async function refreshHealth() {
   }
 }
 
-function statusClass(status: string) {
+function statusClass(status: string): string {
   if (status === '正常') {
     return 'status-ok';
   }
@@ -40,8 +41,8 @@ function statusClass(status: string) {
   return 'status-error';
 }
 
-onMounted(() => {
-  refreshHealth();
+onMounted((): void => {
+  void refreshHealth();
 });
 </script>
 

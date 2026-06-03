@@ -6,11 +6,11 @@ import { sessionStore } from '../stores/sessionStore';
 
 const push = vi.fn();
 const axiosMock = vi.hoisted(() => {
-  const post = vi.fn();
+  const request = vi.fn();
 
   return {
-    post,
-    create: vi.fn(() => ({ post }))
+    request,
+    create: vi.fn(() => ({ request }))
   };
 });
 
@@ -33,7 +33,7 @@ vi.mock('vue-router', () => ({
 describe('LoginView', () => {
   beforeEach(() => {
     push.mockClear();
-    axiosMock.post.mockReset();
+    axiosMock.request.mockReset();
     axiosMock.create.mockClear();
     sessionStore.clear();
   });
@@ -44,7 +44,7 @@ describe('LoginView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     expect(screen.getByRole('alert')).toHaveTextContent('帳密未輸入');
-    expect(axiosMock.post).not.toHaveBeenCalled();
+    expect(axiosMock.request).not.toHaveBeenCalled();
   });
 
   it('帳號或密碼不足 8 碼時不送出 API', async () => {
@@ -55,11 +55,11 @@ describe('LoginView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     expect(screen.getByRole('alert')).toHaveTextContent('帳號及密碼長度需為 8 碼以上');
-    expect(axiosMock.post).not.toHaveBeenCalled();
+    expect(axiosMock.request).not.toHaveBeenCalled();
   });
 
   it('DEMO0001 登入成功時保存英文欄位使用者與至少 3 筆放款資料', async () => {
-    axiosMock.post.mockResolvedValue({
+    axiosMock.request.mockResolvedValue({
       data: {
         success: true,
         user: {
@@ -99,9 +99,13 @@ describe('LoginView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith({ name: 'home' }));
-    expect(axiosMock.post).toHaveBeenCalledWith('/login', {
-      account: 'DEMO0001',
-      password: 'DemoPass123!'
+    expect(axiosMock.request).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/login',
+      data: {
+        account: 'DEMO0001',
+        password: 'DemoPass123!'
+      }
     });
     expect(sessionStore.user?.account).toBe('DEMO0001');
     expect(sessionStore.user?.userName).toBe('tommy使用者');
@@ -109,7 +113,7 @@ describe('LoginView', () => {
   });
 
   it('DEMO0002 測試帳號登入成功時保存至少 3 筆放款資料', async () => {
-    axiosMock.post.mockResolvedValue({
+    axiosMock.request.mockResolvedValue({
       data: {
         success: true,
         user: {
@@ -149,16 +153,20 @@ describe('LoginView', () => {
     await fireEvent.click(screen.getByRole('button', { name: '送出' }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith({ name: 'home' }));
-    expect(axiosMock.post).toHaveBeenCalledWith('/login', {
-      account: 'DEMO0002',
-      password: 'SamplePass456!'
+    expect(axiosMock.request).toHaveBeenCalledWith({
+      method: 'POST',
+      url: '/login',
+      data: {
+        account: 'DEMO0002',
+        password: 'SamplePass456!'
+      }
     });
     expect(sessionStore.user?.account).toBe('DEMO0002');
     expect(sessionStore.user?.loans).toHaveLength(3);
   });
 
   it('登入失敗時顯示錯誤訊息', async () => {
-    axiosMock.post.mockResolvedValue({
+    axiosMock.request.mockResolvedValue({
       data: { success: false, message: '帳密錯誤' }
     });
 
