@@ -1,6 +1,6 @@
 # Vue3 貸款資料示範系統
 
-最後更新時間：2026/06/03 14:24:20
+最後更新時間：2026/06/10 21:36:51
 
 本專案是一個 Vue3 + Vite 的前端示範系統，搭配 Express mock API 與 JSON 檔案模擬後端資料。主要功能包含登入、註冊、使用者名稱建立、會員首頁、貸款資料顯示、貸款資料異動與異動紀錄查詢。
 
@@ -48,12 +48,25 @@ server/
   user-profiles.json
   user-loans.json
   user-loan-change-logs.json
+packages/
+  api-sdk/
+  invoice-platform-api/
+local-packages/
+  README.md
 VUE3專案文件SOP.md
+本地套件使用手冊.md
+vue3技術展示文件.md
 ```
 
 ## 專案文件 SOP
 
 本專案新增 `VUE3專案文件SOP.md`，依照現行 Vue3 + TypeScript + API 分層架構，整理專案建立、功能擴充、mock 安全資料、測試驗證、文件維護與 GitHub 推送前檢查流程。後續新增功能或重建類似 Vue3 專案時，可依該 SOP 的序列表與檢查表執行。
+
+## Vue3 技術展示文件
+
+`vue3技術展示文件.md` 說明元件溝通 `props/emit`、Vue Router 路由導航、mock + Axios 資料模擬與串接，以及 Pinia Store 全域狀態管理。文件包含現行專案使用位置、TypeScript 範例、測試方式與常見使用原則。
+
+目前專案的全域狀態管理實際採用 Vuex；Pinia 內容屬於技術展示與未來導入建議，尚未直接修改現行 Vuex 程式。
 
 ## 安裝與啟動
 
@@ -159,6 +172,24 @@ VITE_API_TIMEOUT_MS=8000
 
 `src/services/authApi.ts`、`src/services/apiHealthService.ts` 與 `src/config/backendApiConfig.ts` 目前只保留相容舊引用的 re-export；新功能請改由 `src/api/modules/*` 或 `src/api/index.ts` 匯入。
 
+## API 本地套件
+
+本專案已將可重用 API 能力拆成兩個 TypeScript 本地套件：
+
+| 套件 | 套件名稱 | 用途 |
+|---|---|---|
+| 通用 API SDK | `@vue3-invoice/api-sdk` | 可注入 Axios Client、設定端點、解析動態路徑、統一 request、錯誤處理與 `success` 檢查。 |
+| 發票平台 API | `@vue3-invoice/platform-api` | 提供登入、註冊、使用者、發票放款、異動紀錄與匯率業務 API。 |
+
+建置及產生 `.tgz`：
+
+```bash
+npm run test:packages
+npm run pack:packages
+```
+
+產物位於 `local-packages/`，詳細安裝與使用方式請參考 `本地套件使用手冊.md`。`.tgz` 與套件 `dist/` 屬於建置產物，已排除於 Git 版控之外。
+
 ## 後台 API 狀態檢查
 
 可直接開啟後台檢查頁：
@@ -232,9 +263,12 @@ npm run type-check
 
 最近一次完整驗證結果：
 
-- 驗證時間：2026/05/29 22:14:50。
+- 驗證時間：2026/06/10 21:26:16。
 - `npm run type-check`：`vue-tsc --noEmit` 通過。
-- `npm test`：9 個測試檔、37 個測試案例通過。
+- `npm test`：11 個測試檔、46 個測試案例通過。
+- `npm run test:packages`：2 個套件測試檔、9 個測試案例通過。
+- `npm run pack:packages`：成功產生 API SDK 與發票平台 API `.tgz`。
+- 獨立 smoke-test：從 `.tgz` 安裝後，可成功 import、建立 API 實例、呼叫並通過 TypeScript declaration 檢查。
 - `npm run build`：`vue-tsc --noEmit` 與 Vite production build 成功。
 - API 自建模組三層架構已完成型別檢查與單元測試驗證。
 - 實際網頁操作驗證通過：註冊頁可輸入使用者名稱；1 字元使用者名稱會顯示 `使用者名稱必須大於2長`；2 字元以上使用者名稱可註冊成功並於首頁顯示。

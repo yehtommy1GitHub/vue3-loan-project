@@ -11,3 +11,5 @@ pnpm-debug.log*
 Thumbs.db
 coverage/
 .vite/
+local-packages/*.tgz
+local-packages/smoke-test/

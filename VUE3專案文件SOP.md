@@ -1,6 +1,6 @@
 # VUE3 專案文件 SOP
 
-最後更新時間：2026/06/03 14:24:20
+最後更新時間：2026/06/10 21:26:16
 
 ## 1. 文件目的
 
@@ -169,8 +169,25 @@
 | 測試漏補 | 新規則只靠手動測試。 | 新增驗證規則時同步補 `*.test.ts`。 |
 | 產物誤提交 | `dist/` 或 `.env` 未排除。 | 使用 `.gitignore` 與推送前檢查。 |
 
-## 14. SOP 版本記錄
+## 14. 本地套件建立與交付 SOP
+
+| 序列 | 操作 | 指令或位置 | 完成條件 |
+|---|---|---|---|
+| 1 | 定義套件邊界 | `packages/api-sdk`、`packages/invoice-platform-api` | 通用 HTTP 能力與發票業務 API 分離。 |
+| 2 | 撰寫 TypeScript source | 各套件 `src` | 公開函式與資料契約具有完整型別。 |
+| 3 | 撰寫單元測試 | 各套件 `src/*.test.ts` | request、錯誤、正規化與業務 API 皆有測試。 |
+| 4 | 執行套件測試 | `npm run test:packages` | 所有套件測試通過。 |
+| 5 | 建置 JS 與 declaration | `npm run build:packages` | 各套件 `dist/` 包含 `index.js` 與 `.d.ts`。 |
+| 6 | 產生本地套件 | `npm run pack:packages` | `local-packages/` 產生版本化 `.tgz`。 |
+| 7 | 安裝 smoke test | 將 `.tgz` 安裝到獨立最小專案 | 套件可成功 import、建立實例與呼叫。 |
+| 8 | 撰寫使用手冊 | `本地套件使用手冊.md`、各套件 `README.md` | 安裝、使用、覆寫設定與升版流程完整。 |
+| 9 | 交付前檢查 | `git status --ignored` | `.tgz` 與 `dist/` 為 ignored，不上傳 GitHub。 |
+
+套件版本異動時，應先調整套件 `package.json` 的 `version`，再重新執行測試、建置、打包與使用端安裝驗證。不得用相同版本覆蓋已交付的 `.tgz`，避免使用端無法判斷目前安裝內容。
+
+## 15. SOP 版本記錄
 
 | 版本 | 時間 | 更新內容 | 維護者 |
 |---|---|---|---|
 | 1.0 | 2026/06/03 14:24:20 | 依據現行 Vue3 專案建立文件 SOP，整理專案建立、API 分層、mock、安全資料、測試、文件與版控流程。 | Codex |
+| 1.1 | 2026/06/10 21:23:34 | 新增 API SDK 與發票平台 API 本地套件建置、測試、打包、安裝與升版流程。 | Codex |

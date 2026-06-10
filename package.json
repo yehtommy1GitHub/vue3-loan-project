@@ -11,7 +11,12 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:packages": "vitest run packages",
+    "build:api-sdk": "vite build --config packages/api-sdk/vite.config.ts && tsc -p packages/api-sdk/tsconfig.json",
+    "build:platform-api": "vite build --config packages/invoice-platform-api/vite.config.ts && tsc -p packages/invoice-platform-api/tsconfig.json",
+    "build:packages": "npm run build:api-sdk && npm run build:platform-api",
+    "pack:packages": "npm run build:packages && npm pack ./packages/api-sdk --pack-destination ./local-packages && npm pack ./packages/invoice-platform-api --pack-destination ./local-packages"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
